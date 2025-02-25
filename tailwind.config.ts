@@ -8,9 +8,16 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Merriweather', 'serif'],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        'bg-light-brown': '#BF5906',
+        'bg-brown': '#6A422D',
+        'bg-yellow': '#E8D56F',
+        'border-gray': '#9F9F9F',
+        'hover-light-brown': '#EE710B',
       },
     },
   },
