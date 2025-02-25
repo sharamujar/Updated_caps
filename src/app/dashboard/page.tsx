@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase-config";
-import ProtectedRoute from "@/app/components/protectedroute";
+import ProtectedRoute from "@/app/components/ProtectedRoute";
 
 export default function Dashboard() {
   const router = useRouter(); // Next.js navigation
