@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { auth } from "../app/firebase-config";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const router = useRouter();
@@ -27,8 +29,8 @@ export default function Login() {
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault(); //prevent page reload when enter key is pressed
-    setEmailError("");
-    setPasswordError("");
+    // setEmailError("");
+    // setPasswordError("");
 
     const emailValidationError = validateEmail(email);
     const passwordValidationError = validatePassword(password);
@@ -90,24 +92,40 @@ export default function Login() {
               />
               {emailError && <p className="text-red-500 text-xs mt-1 ml-3">{emailError}</p>}
             </div>
-            <div className="flex flex-col gap-1">
+
+            <div className="flex flex-col gap-1 relative">
               <label className="text-xs font-extralight ml-3 text-bg-brown">Password</label>
-              <input
-                type="password"
-                className={`w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border ${
-                  passwordError ? "border-red-500" : "border-slate-200"
-                } rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow`}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className={`w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border ${
+                    passwordError ? "border-red-500" : "border-slate-200"
+                  } rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow`}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+
+                {/* Eye Icon */}
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {/* password error message */}
               {passwordError && <p className="text-red-500 text-xs mt-1 ml-3">{passwordError}</p>}
             </div>
+
             <div className="flex justify-end pt-2 pb-10">
               <button className="text-xs font-bold underline text-bg-brown">
                 Forgot Password?
               </button>
             </div>
+
             <button
               className="w-full rounded-md bg-bg-light-brown py-2 px-4 border border-transparent font-bold text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:shadow-none active:bg-hover-light-brown hover:bg-hover-light-brown active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
               type="button"

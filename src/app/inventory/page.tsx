@@ -4,16 +4,16 @@ import { useRouter } from "next/navigation";
 import { storage, db } from "../firebase-config";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
 import { useEffect, useRef, useState } from "react";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, updateDoc } from "firebase/firestore";
 
-export default function Products() {
+export default function Inventory() {
     const [image, setImage] = useState<File | null>(null);
     // const fileInputRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
-
     const [isOpen, setIsOpen] = useState(false); // state for modal visibility
+    const [editProduct, setEditProduct] = useState<string | null>(null); // state for editing product
 
-    // state for product details (array)
+    // state for product details (array - displaying products)
     const [products, setProducts] = useState<Array<{
         id: string,
         imageURL: string,
@@ -24,7 +24,7 @@ export default function Products() {
         description: string,
     }>>([]);
 
-    // state for product details (single)
+    // state for product details (single - adding products)
     const [product, setProduct] = useState({
         imageURL: "",
         name: "",
@@ -138,6 +138,35 @@ export default function Products() {
             alert("Failed to add product. Please try again later.");
         }
     };
+    
+    const handleEdit = async (productID: string) => {
+        if (!productID) return;
+
+        try {
+            await updateDoc(doc(db, "products", productID), {
+                imageURL: product.imageURL,
+                name: product.name,
+                price: Number(product.price),
+                stock: Number(product.stock),
+                unit: product.unit,
+                description: product.description,
+            });
+
+            alert("Product updated successfully!");
+
+            // Reset form and close modal
+            setProducts([]);
+            setImage(null);
+            setFile(null);
+    
+            // Refresh products
+            fetchProducts();
+        } catch (error) {
+            console.error("Error updating product:", error);
+            alert("Failed to update product.");
+        }
+    };
+    
 
     return (
         <ProtectedRoute>
@@ -147,15 +176,17 @@ export default function Products() {
                 </h1>
 
                 <div className="w-full flex flex-col p-4">
-                    <div>
+                    {/* <div>
                         <h3 className="text-lg font-bold text-slate-800">List of Products</h3>
-                    </div>
+                    </div> */}
                     <div className="flex items-center justify-between mt-2">
                         <div className="relative w-full max-w-sm min-w-[200px]">
                             <input
                                 className="bg-white w-full pr-11 h-10 pl-3 py-2 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md"
                                 placeholder="Search for products..."
                             />
+
+                            {/* search button */}
                             <button
                                 className="absolute h-8 w-8 right-1 top-1 my-auto px-2 flex items-center bg-white rounded "
                                 type="button"
@@ -165,13 +196,27 @@ export default function Products() {
                                     </svg>
                             </button>
                         </div>
+                        {/* <button className="mx-auto select-none rounded border border-slate-200 py-2 px-4 text-center text-sm font-normal bg-white text-slate-700 hover:border-slate-400 transition-all hover:shadow-red-600/20 active:text-white active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                type="button">Sort
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-down-up"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/>
+                            </svg>
+                        </button> */}
 
                         {/* Button to open modal */}
                         <button
-                            onClick={() => setIsOpen(true)}
-                            className="px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 font-semibold rounded-lg shadow-md transition"
-                        >
-                            + Add Product
+                            onClick={() =>  {
+                                setEditProduct(null); // Reset edit product state
+                                setProduct({
+                                    imageURL: "",
+                                    name: "",
+                                    price: "",
+                                    stock: "",
+                                    unit: "",
+                                    description: "",
+                                });
+                                setIsOpen(true); // open modal
+                            }}
+                            className="px-6 py-3 rounded text-center text-sm font-semibold text-white bg-bg-light-brown shadow-md shadow-slate-900/10 transition-all hover:shadow-lg hover:shadow-slate-900/20 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">+ Add Product
                         </button>
 
                         {/* Modal */}
@@ -180,9 +225,25 @@ export default function Products() {
                         <div className="bg-white rounded-lg shadow-lg p-6 w-96">
                             
                 {/* form to add product */}
-                <form onSubmit={handleSubmit} 
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (editProduct) {
+                        handleEdit(editProduct); // Call handleEdit if editing
+                    } else {
+                        handleSubmit(e); // Call handleSubmit if adding a new product
+                    }
+                }}
                     className="flex flex-col gap-4">
                     <div className="w-full max-w-sm min-w-[200px]">
+                        {/* Close button */}
+                        {/* <div className="flex justify-end pb-4">
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg"
+                                >
+                                Close
+                            </button>
+                        </div> */}
                         <input className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow"
                             type="file"
                             accept="image/*"
@@ -226,63 +287,79 @@ export default function Products() {
                             required/>
                     </div>
                     <div className="w-full max-w-sm min-w-[200px]">
-                        <input className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow" 
-                            type="text"
+                        <textarea
+                            className="w-full h-40 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow"
                             name="description"
                             value={product.description}
                             onChange={handleChange}
                             placeholder="Description" 
                             required/>
                     </div>
-                    <button className="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" 
-                        type="submit">Submit
-                    </button>
-                </form>
-                            
-                            {/* Close button */}
+                    {/* <button className="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none " 
+                        type="submit">{editProduct ? "Update Product" : "Add Product"} 
+                    </button> */}
+                    
+                    <div className="p-6 pt-0">
+                        <div className="flex space-x-2">
                             <button
-                            onClick={() => setIsOpen(false)}
-                            className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg"
-                            >
-                            Close
+                                className="w-full mx-auto select-none rounded border border-red-600 py-2 px-4 text-center text-sm font-semibold text-red-600 transition-all hover:bg-red-600 hover:text-white hover:shadow-md hover:shadow-red-600/20 active:bg-red-700 active:text-white active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                type="button"
+                                onClick={() => setIsOpen(false)}>
+                                Cancel
                             </button>
+                
+                            <button
+                                className="w-full mx-auto select-none rounded bg-bg-light-brown py-2 px-4 text-center text-sm font-semibold text-white shadow-md shadow-slate-900/10 transition-all hover:shadow-lg hover:shadow-slate-900/20 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                type="submit">{editProduct ? "Update" : "Add"} 
+                            </button>
+                        </div>
+                    </div>
+                </form>
                         </div>
                     </div>
                 )}
                     </div>
                 </div>
 
-                <div className="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md rounded-lg bg-clip-border">
+                <div className="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md rounded-lg bg-clip-border ml-8">
                     <table className="w-full text-left table-auto min-w-max">
                         <thead>
                             <tr>
-                            <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                <p className="block text-sm font-normal leading-none text-slate-500">
-                                Image
-                                </p>
-                            </th>
-                            <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                <p className="block text-sm font-normal leading-none text-slate-500">
-                                Name
-                                </p>
-                            </th>
-                            <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                <p className="block text-sm font-normal leading-none text-slate-500">
-                                Price
-                                </p>
-                            </th>
-                            <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                <p className="block text-sm font-normal leading-none text-slate-500">
-                                Stock
-                                </p>
-                            </th>
-                            <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                <p className="block text-sm font-normal leading-none text-slate-500">
-                                Unit
-                                </p>
-                            </th>
-                            <th className="p-4 border-b border-slate-300 bg-slate-50">
-                            </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Image
+                                    </p>
+                                </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Name
+                                    </p>
+                                </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Price
+                                    </p>
+                                </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Quantity
+                                    </p>
+                                </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Unit
+                                    </p>
+                                </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Description
+                                    </p>
+                                </th>
+                                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                                    <p className="block text-sm font-normal leading-none text-slate-500">
+                                    Actions
+                                    </p>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -296,6 +373,27 @@ export default function Products() {
                                         <td className="p-4 py-5 text-sm text-slate-800">₱{product.price}</td>
                                         <td className="p-4 py-5 text-sm text-slate-800">{product.stock}</td>
                                         <td className="p-4 py-5 text-sm text-slate-800">{product.unit}</td>
+                                        <td className="p-4 py-5 text-sm text-slate-800 break-words whitespace-pre-wrap max-w-xs">{product.description}</td>
+                                        <td className="p-4 py-5">
+                                            <div>
+                                                <button className="text-slate-600 hover:text-slate-800 flex"
+                                                    onClick={() => {
+                                                        console.log("Image URL:", product.imageURL); // Debugging
+                                                        setIsOpen(true);
+                                                        setEditProduct(product.id); // Set the product ID for editing
+                                                        setProduct({
+                                                            imageURL: product.imageURL,
+                                                            name: product.name,
+                                                            price: product.price,
+                                                            stock: product.stock,
+                                                            unit: product.unit,
+                                                            description: product.description,
+                                                        });
+                                                    }}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth={0} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
