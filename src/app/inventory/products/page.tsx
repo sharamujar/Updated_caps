@@ -1,8 +1,8 @@
 "use client"; // Required for using hooks
 
 import { useRouter } from "next/navigation";
-import { storage, db } from "../firebase-config";
-import ProtectedRoute from "@/app/components/ProtectedRoute";
+import { storage, db } from "../../firebase-config";
+import ProtectedRoute from "@/app/components/protectedroute";
 import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, doc, getDocs, updateDoc } from "firebase/firestore";
 
