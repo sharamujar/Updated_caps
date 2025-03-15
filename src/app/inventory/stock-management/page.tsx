@@ -4,66 +4,59 @@ import { useEffect, useState } from "react";
 import { addDoc, collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase-config";
 import ProtectedRoute from "@/app/components/protectedroute";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase-config";
+
+interface Stock {
+    id: string;
+    productName: string;
+    quantity: number;
+    unit: string;
+    supplier: string;
+    receivedDate: string;
+    remarks: string;
+}
 
 export default function Stock() {
-    const [stocks, setStocks] = useState<Array<{
-        id: string;
-        productName: string;
-        quantity: number;
-        unit: string;
-        supplier: string;
-        receivedDate: string;
-        remarks: string;
-    }>>([]);
-
-    const [stock, setStock] = useState({
+    const [stocks, setStocks] = useState<Stock[]>([]);
+    const [stock, setStock] = useState<Stock>({
+        id: '',
         productName: "",
-        quantity: "",
+        quantity: 0,
         unit: "",
         supplier: "",
         receivedDate: "",
         remarks: ""
     });
-
-    const [editStock, setEditStock] = useState<string | null>(null);
-
-    const [user, setUser] = useState({
-        name: "",
-        email: "",
-        role: "",
-        status: "Inactive",
-        password: "",
-    });
+    const [editStockId, setEditStockId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchStocks();
     }, []);
 
     const fetchStocks = async () => {
-        const querySnapshot = await getDocs(collection(db, "stocks"));
-        const stockList = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            productName: doc.data().productName,
-            quantity: doc.data().quantity,
-            unit: doc.data().unit,
-            supplier: doc.data().supplier,
-            receivedDate: doc.data().receivedDate,
-            remarks: doc.data().remarks
-        }));
-        setStocks(stockList);
+        try {
+            const querySnapshot = await getDocs(collection(db, "stocks"));
+            const stockList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as Stock[];
+            setStocks(stockList);
+        } catch (error) {
+            console.error("Error fetching stocks:", error);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setUser({ ...user, [e.target.name]: e.target.value });
+        setStock({ ...stock, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+
         try {
-            if (editStock) {
-                await updateDoc(doc(db, "stocks", editStock), {
+            if (editStockId) {
+                await updateDoc(doc(db, "stocks", editStockId), {
                     ...stock,
                     updatedAt: new Date()
                 });
@@ -76,25 +69,19 @@ export default function Stock() {
                 });
                 alert("Stock added successfully!");
             }
-            setStock({ productName: "", quantity: "", unit: "", supplier: "", receivedDate: "", remarks: "" });
-            setEditStock(null);
+            resetForm();
             fetchStocks();
         } catch (error) {
-            console.error("Error handling stock: ", error);
+            console.error("Error handling stock:", error);
             alert("Failed to process stock. Please try again later.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleEdit = (stk: { id: any; productName: any; quantity: any; unit: any; supplier: any; receivedDate: any; remarks: any; }) => {
-        setEditStock(stk.id);
-        setStock({
-            productName: stk.productName,
-            quantity: stk.quantity,
-            unit: stk.unit,
-            supplier: stk.supplier,
-            receivedDate: stk.receivedDate,
-            remarks: stk.remarks
-        });
+    const handleEdit = (stk: Stock) => {
+        setEditStockId(stk.id);
+        setStock(stk);
     };
 
     const handleDelete = async (id: string) => {
@@ -104,10 +91,23 @@ export default function Stock() {
                 alert("Stock deleted successfully!");
                 fetchStocks();
             } catch (error) {
-                console.error("Error deleting stock: ", error);
+                console.error("Error deleting stock:", error);
                 alert("Failed to delete stock.");
             }
         }
+    };
+
+    const resetForm = () => {
+        setStock({
+            id: '',
+            productName: "",
+            quantity: 0,
+            unit: "",
+            supplier: "",
+            receivedDate: "",
+            remarks: ""
+        });
+        setEditStockId(null);
     };
 
     return (
@@ -163,24 +163,10 @@ export default function Stock() {
                         placeholder="Remarks"
                         className="border p-2 rounded w-full col-span-1 md:col-span-2"
                     ></textarea>
-                    <div className="mb-4">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={user.password}
-                            onChange={handleChange}
-                            className="mt-1 block w-full p-2 border border-gray-300 rounded"
-                            required
-                        />
-                    </div>
                     <button
                         type="submit"
                         className="bg-bg-light-brown text-white p-2 rounded hover:bg-bg-dark-brown col-span-1 md:col-span-2">
-                        {editStock ? "Update Stock" : "Add Stock"}
+                        {editStockId ? "Update Stock" : "Add Stock"}
                     </button>
                 </form>
 

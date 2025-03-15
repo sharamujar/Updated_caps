@@ -9,6 +9,7 @@ import { useState } from "react";
 
 const Sidebar = () => {
   const [isInventoryOpen, setIsInventoryOpen] = useState(false); // Track inventory dropdown state
+  const [isContentManagementOpen, setIsContentManagementOpen] = useState(false); // Track content management dropdown state
   const router = useRouter(); // Next.js navigation
 
   const handleLogout = async () => {
@@ -17,8 +18,12 @@ const Sidebar = () => {
       await signOut(auth); // Sign out user
       console.log("Logout successful! Redirecting...");
       router.push("/"); // Redirect to home page
-    } catch (error: any) {
-      console.error("Logout error:", error.code, error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Logout error:", error.message);
+      } else {
+        console.error("Unexpected logout error:", error);
+      }
     }
   };
 
@@ -117,20 +122,6 @@ const Sidebar = () => {
                   Stock Management
                 </div>
               </Link>
-              <Link href="/inventory/suppliers">
-                <div
-                  role="button"
-                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
-                >
-                  <div className="grid mr-4 place-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users">
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    </svg>
-                  </div>
-                  Suppliers
-                </div>
-              </Link>
               <Link href="/inventory/damaged-goods">
                 <div
                   role="button"
@@ -155,6 +146,61 @@ const Sidebar = () => {
                     </svg>
                   </div>
                   Inventory Reports
+                </div>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Content Management Module with Arrow Dropdown */}
+        <div className="relative">
+          <div
+            role="button"
+            onClick={() => setIsContentManagementOpen(!isContentManagementOpen)} // Toggle dropdown
+            className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+          >
+            <div className="grid mr-4 place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text">
+                <path d="M6 2h12l4 4v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4z" />
+              </svg>
+            </div>
+            Content Management
+            <div className={`ml-auto transform transition-transform duration-300 ${isContentManagementOpen ? 'rotate-180' : ''}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Dropdown items */}
+          {isContentManagementOpen && (
+            <div className="ml-6 mt-2 space-y-1">
+              <Link href="/content/promotions">
+                <div
+                  role="button"
+                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+                >
+                  <div className="grid mr-4 place-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 1h4l2 10h10l2 10H5l-2-10H1z" />
+                      <path d="M1 1h4l2 10h10l2 10H5l-2-10H1z" />
+                    </svg>
+                  </div>
+                  Promotions
+                </div>
+              </Link>
+              <Link href="/content/announcements">
+                <div
+                  role="button"
+                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+                >
+                  <div className="grid mr-4 place-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 1h4l2 10h10l2 10H5l-2-10H1z" />
+                      <path d="M1 1h4l2 10h10l2 10H5l-2-10H1z" />
+                    </svg>
+                  </div>
+                  Announcements
                 </div>
               </Link>
             </div>
