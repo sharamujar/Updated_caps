@@ -20,7 +20,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import Notification from "@/app/components/Notification"; // Import the Notification component
+/* import Notification from "@/app/components/Notification"; // Import the Notification component */
 
 // Register ChartJS components
 ChartJS.register(
@@ -394,178 +394,183 @@ export default function Dashboard() {
 
   return (
     <ProtectedRoute>
-      <div className="flex flex-col min-h-screen bg-gray-100 p-6">
-        {/* Header with Notifications */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
-            <p className="text-gray-600 mt-1">Welcome to your business analytics</p>
-          </div>
-          
-          <div className="relative">
-            <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 hover:bg-gray-100 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bell">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-              </svg>
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {notifications.length}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
+      <div className="flex h-screen overflow-hidden">
+        {/* Sidebar will be rendered by the layout component */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {/* Header with Notifications */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
+                <p className="text-gray-600 mt-1">Welcome to your business analytics</p>
+              </div>
+              
+              <div className="relative">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 hover:bg-gray-100 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bell">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                  </svg>
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
 
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
-            <h3 className="text-lg font-semibold mb-2">Daily Sales</h3>
-            <p className="text-2xl">₱{salesData.daily.toLocaleString()}</p>
-            <p className="text-sm opacity-75 mt-2">Today's revenue</p>
-          </div>
-          <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg shadow-lg text-white">
-            <h3 className="text-lg font-semibold mb-2">Weekly Sales</h3>
-            <p className="text-2xl">₱{salesData.weekly.toLocaleString()}</p>
-            <p className="text-sm opacity-75 mt-2">Last 7 days</p>
-          </div>
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg text-white">
-            <h3 className="text-lg font-semibold mb-2">Monthly Sales</h3>
-            <p className="text-2xl">₱{salesData.monthly.toLocaleString()}</p>
-            <p className="text-sm opacity-75 mt-2">This month</p>
-          </div>
-          <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 rounded-lg shadow-lg text-white">
-            <h3 className="text-lg font-semibold mb-2">Low Stock Items</h3>
-            <p className="text-2xl">{lowStockItems.length}</p>
-            <p className="text-sm opacity-75 mt-2">Items need attention</p>
-          </div>
-        </div>
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+                <h3 className="text-lg font-semibold mb-2">Daily Sales</h3>
+                <p className="text-2xl">₱{salesData.daily.toLocaleString()}</p>
+                <p className="text-sm opacity-75 mt-2">Today's revenue</p>
+              </div>
+              <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg shadow-lg text-white">
+                <h3 className="text-lg font-semibold mb-2">Weekly Sales</h3>
+                <p className="text-2xl">₱{salesData.weekly.toLocaleString()}</p>
+                <p className="text-sm opacity-75 mt-2">Last 7 days</p>
+              </div>
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg text-white">
+                <h3 className="text-lg font-semibold mb-2">Monthly Sales</h3>
+                <p className="text-2xl">₱{salesData.monthly.toLocaleString()}</p>
+                <p className="text-sm opacity-75 mt-2">This month</p>
+              </div>
+              <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 rounded-lg shadow-lg text-white">
+                <h3 className="text-lg font-semibold mb-2">Low Stock Items</h3>
+                <p className="text-2xl">{lowStockItems.length}</p>
+                <p className="text-sm opacity-75 mt-2">Items need attention</p>
+              </div>
+            </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Sales Trend Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Sales Trend</h3>
-            <div className="h-[300px]">
-              <Line options={chartOptions} data={salesChartData} />
-            </div>
-          </div>
-
-          {/* Popular Products Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Popular Products</h3>
-            <div className="h-[300px]">
-              <Bar options={chartOptions} data={productChartData} />
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Orders and Low Stock Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Recent Orders */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Recent Orders</h3>
-              <button className="text-blue-600 hover:text-blue-800 text-sm">View All</button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Customer</th>
-                    <th className="text-right p-2">Amount</th>
-                    <th className="text-center p-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{order.customerName}</td>
-                      <td className="text-right p-2">₱{order.total.toLocaleString()}</td>
-                      <td className="text-center p-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Low Stock Alerts */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Low Stock Alerts</h3>
-              <button className="text-blue-600 hover:text-blue-800 text-sm">View All</button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Product</th>
-                    <th className="text-right p-2">Current Stock</th>
-                    <th className="text-right p-2">Min Stock</th>
-                    <th className="text-center p-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lowStockItems.map((item) => (
-                    <tr key={item.id} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{item.name}</td>
-                      <td className="text-right p-2">{item.currentStock}</td>
-                      <td className="text-right p-2">{item.minimumStock}</td>
-                      <td className="text-center p-2">
-                        <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                          Low Stock
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Notification Dropdown */}
-        {showNotifications && (
-          <div className="absolute top-20 right-6 w-80 bg-white rounded-lg shadow-xl z-50">
-            <div className="p-4 border-b">
-              <h3 className="font-semibold">Notifications</h3>
-            </div>
-            <div className="max-h-96 overflow-y-auto">
-              {notifications.map((notification, index) => (
-                <div key={index} className={`p-4 border-b ${
-                  notification.type === 'error' ? 'bg-red-50' :
-                  notification.type === 'warning' ? 'bg-yellow-50' :
-                  'bg-green-50'
-                }`}>
-                  <p className={`text-sm ${
-                    notification.type === 'error' ? 'text-red-800' :
-                    notification.type === 'warning' ? 'text-yellow-800' :
-                    'text-green-800'
-                  }`}>
-                    {notification.message}
-                  </p>
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Sales Trend Chart */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold mb-4">Sales Trend</h3>
+                <div className="h-[300px]">
+                  <Line options={chartOptions} data={salesChartData} />
                 </div>
-              ))}
+              </div>
+
+              {/* Popular Products Chart */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold mb-4">Popular Products</h3>
+                <div className="h-[300px]">
+                  <Bar options={chartOptions} data={productChartData} />
+                </div>
+              </div>
             </div>
-            <div className="p-4 border-t">
-              <button
-                onClick={() => setShowNotifications(false)}
-                className="w-full px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
-              >
-                Close
-              </button>
+
+            {/* Recent Orders and Low Stock Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Recent Orders */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Recent Orders</h3>
+                  <button className="text-blue-600 hover:text-blue-800 text-sm">View All</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2">Customer</th>
+                        <th className="text-right p-2">Amount</th>
+                        <th className="text-center p-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentOrders.map((order) => (
+                        <tr key={order.id} className="border-b hover:bg-gray-50">
+                          <td className="p-2">{order.customerName}</td>
+                          <td className="text-right p-2">₱{order.total.toLocaleString()}</td>
+                          <td className="text-center p-2">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Low Stock Alerts */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Low Stock Alerts</h3>
+                  <button className="text-blue-600 hover:text-blue-800 text-sm">View All</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2">Product</th>
+                        <th className="text-right p-2">Current Stock</th>
+                        <th className="text-right p-2">Min Stock</th>
+                        <th className="text-center p-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lowStockItems.map((item) => (
+                        <tr key={item.id} className="border-b hover:bg-gray-50">
+                          <td className="p-2">{item.name}</td>
+                          <td className="text-right p-2">{item.currentStock}</td>
+                          <td className="text-right p-2">{item.minimumStock}</td>
+                          <td className="text-center p-2">
+                            <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                              Low Stock
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+
+          {/* Notification Dropdown */}
+          {showNotifications && (
+            <div className="fixed top-20 right-6 w-80 bg-white rounded-lg shadow-xl z-50">
+              <div className="p-4 border-b">
+                <h3 className="font-semibold">Notifications</h3>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.map((notification, index) => (
+                  <div key={index} className={`p-4 border-b ${
+                    notification.type === 'error' ? 'bg-red-50' :
+                    notification.type === 'warning' ? 'bg-yellow-50' :
+                    'bg-green-50'
+                  }`}>
+                    <p className={`text-sm ${
+                      notification.type === 'error' ? 'text-red-800' :
+                      notification.type === 'warning' ? 'text-yellow-800' :
+                      'text-green-800'
+                    }`}>
+                      {notification.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 border-t">
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="w-full px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </ProtectedRoute>
   );

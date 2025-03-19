@@ -35,3 +35,19 @@ body {
     padding: 2px 6px;
     font-size: 12px;
 }
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    width: 250px; /* Adjust based on your sidebar width */
+    z-index: 1000; /* Ensure it stays above other content */
+}
+
+.main-content {
+    margin-left: 250px; /* Should match sidebar width */
+    min-height: 100vh;
+    overflow-y: auto; /* Allow scrolling for main content */
+}

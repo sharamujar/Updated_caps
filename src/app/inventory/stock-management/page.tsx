@@ -32,9 +32,6 @@ interface Stock {
     productName: string;
     quantity: number;
     unit: string;
-    supplier: string;
-    supplierContact: string;
-    supplierEmail: string;
     minimumStock: number;
     reorderPoint: number;
     receivedDate: string;
@@ -76,9 +73,6 @@ export default function Stock() {
         productName: "",
         quantity: 0,
         unit: "",
-        supplier: "",
-        supplierContact: "",
-        supplierEmail: "",
         minimumStock: 0,
         reorderPoint: 0,
         receivedDate: "",
@@ -287,9 +281,6 @@ export default function Stock() {
             productName: "",
             quantity: 0,
             unit: "",
-            supplier: "",
-            supplierContact: "",
-            supplierEmail: "",
             minimumStock: 0,
             reorderPoint: 0,
             receivedDate: "",
@@ -307,7 +298,7 @@ export default function Stock() {
         .filter(s => showLowStock ? s.quantity <= s.minimumStock : true)
         .filter(s => 
             s.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.supplier.toLowerCase().includes(searchTerm.toLowerCase())
+            s.location.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
     const chartOptions = {
@@ -326,328 +317,342 @@ export default function Stock() {
 
     return (
         <ProtectedRoute>
-            <div className="flex flex-col min-h-screen bg-gray-100 p-6">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6">Stock Management</h1>
+            <div className="flex h-screen overflow-hidden">
+                {/* Sidebar will be rendered here by the layout */}
+                <div className="flex-1 overflow-y-auto bg-gray-100">
+                    <div className="p-6">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-6">Stock Management</h1>
 
-                {/* Stock Chart */}
-                <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Stock Levels Overview</h2>
-                    <div className="h-[300px]">
-                        <Line options={chartOptions} data={stockChartData} />
-                    </div>
-                </div>
-
-                {/* Filters and Controls */}
-                <div className="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-wrap gap-4 items-center">
-                    <input
-                        type="text"
-                        placeholder="Search products or suppliers..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border p-2 rounded flex-1"
-                    />
-                    <select
-                        value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                        className="border p-2 rounded"
-                    >
-                        <option value="all">All Categories</option>
-                        {/* Add your categories here */}
-                    </select>
-                    <label className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={showLowStock}
-                            onChange={(e) => setShowLowStock(e.target.checked)}
-                        />
-                        Show Low Stock Only
-                    </label>
-                </div>
-
-                {/* Stock Form */}
-                <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                    <h2 className="text-xl font-semibold mb-4">{editStockId ? 'Edit Stock' : 'Add New Stock'}</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                name="productName"
-                                value={stock.productName}
-                                onChange={handleChange}
-                                placeholder="Product Name"
-                                required
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="number"
-                                name="quantity"
-                                value={stock.quantity}
-                                onChange={handleChange}
-                                placeholder="Quantity"
-                                required
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="text"
-                                name="unit"
-                                value={stock.unit}
-                                onChange={handleChange}
-                                placeholder="Unit"
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="number"
-                                name="price"
-                                value={stock.price}
-                                onChange={handleChange}
-                                placeholder="Price per unit"
-                                className="border p-2 rounded w-full"
-                            />
+                        {/* Stock Chart */}
+                        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h2 className="text-xl font-semibold mb-4">Stock Levels Overview</h2>
+                            <div className="h-[300px]">
+                                <Line options={chartOptions} data={stockChartData} />
+                            </div>
                         </div>
-                        <div className="space-y-4">
+
+                        {/* Filters and Controls */}
+                        <div className="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-wrap gap-4 items-center">
                             <input
                                 type="text"
-                                name="supplier"
-                                value={stock.supplier}
-                                onChange={handleChange}
-                                placeholder="Supplier Name"
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="text"
-                                name="supplierContact"
-                                value={stock.supplierContact}
-                                onChange={handleChange}
-                                placeholder="Supplier Contact"
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="email"
-                                name="supplierEmail"
-                                value={stock.supplierEmail}
-                                onChange={handleChange}
-                                placeholder="Supplier Email"
-                                className="border p-2 rounded w-full"
+                                placeholder="Search products or locations..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="border p-2 rounded flex-1"
                             />
                             <select
-                                name="category"
-                                value={stock.category}
-                                onChange={handleChange}
-                                className="border p-2 rounded w-full"
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                                className="border p-2 rounded"
                             >
-                                <option value="">Select Category</option>
+                                <option value="all">All Categories</option>
                                 {/* Add your categories here */}
                             </select>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={showLowStock}
+                                    onChange={(e) => setShowLowStock(e.target.checked)}
+                                />
+                                Show Low Stock Only
+                            </label>
                         </div>
-                        <div className="space-y-4">
-                            <input
-                                type="number"
-                                name="minimumStock"
-                                value={stock.minimumStock}
-                                onChange={handleChange}
-                                placeholder="Minimum Stock Level"
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="number"
-                                name="reorderPoint"
-                                value={stock.reorderPoint}
-                                onChange={handleChange}
-                                placeholder="Reorder Point"
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="text"
-                                name="location"
-                                value={stock.location}
-                                onChange={handleChange}
-                                placeholder="Storage Location"
-                                className="border p-2 rounded w-full"
-                            />
-                            <input
-                                type="date"
-                                name="receivedDate"
-                                value={stock.receivedDate}
-                                onChange={handleChange}
-                                className="border p-2 rounded w-full"
-                            />
+
+                        {/* Updated Stock Form */}
+                        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h2 className="text-xl font-semibold mb-4">{editStockId ? 'Edit Stock' : 'Add New Stock'}</h2>
+                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Basic Information */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                                        <input
+                                            type="text"
+                                            name="productName"
+                                            value={stock.productName}
+                                            onChange={handleChange}
+                                            required
+                                            className="border p-2 rounded w-full"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                                            <input
+                                                type="number"
+                                                name="quantity"
+                                                value={stock.quantity}
+                                                onChange={handleChange}
+                                                min="0"
+                                                step="1"
+                                                required
+                                                className="border p-2 rounded w-full"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                            <input
+                                                type="text"
+                                                name="unit"
+                                                value={stock.unit}
+                                                onChange={handleChange}
+                                                placeholder="pcs, kg, etc."
+                                                className="border p-2 rounded w-full"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            value={stock.price}
+                                            onChange={handleChange}
+                                            min="0"
+                                            step="0.01"
+                                            className="border p-2 rounded w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Stock Control */}
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Stock</label>
+                                            <input
+                                                type="number"
+                                                name="minimumStock"
+                                                value={stock.minimumStock}
+                                                onChange={handleChange}
+                                                min="0"
+                                                step="1"
+                                                className="border p-2 rounded w-full"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Reorder Point</label>
+                                            <input
+                                                type="number"
+                                                name="reorderPoint"
+                                                value={stock.reorderPoint}
+                                                onChange={handleChange}
+                                                min="0"
+                                                step="1"
+                                                className="border p-2 rounded w-full"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <select
+                                            name="category"
+                                            value={stock.category}
+                                            onChange={handleChange}
+                                            className="border p-2 rounded w-full"
+                                        >
+                                            <option value="">Select Category</option>
+                                            <option value="raw">Raw Materials</option>
+                                            <option value="finished">Finished Products</option>
+                                            <option value="packaging">Packaging</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Received Date</label>
+                                        <input
+                                            type="date"
+                                            name="receivedDate"
+                                            value={stock.receivedDate}
+                                            onChange={handleChange}
+                                            className="border p-2 rounded w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Remarks - Full Width */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                                    <textarea
+                                        name="remarks"
+                                        value={stock.remarks}
+                                        onChange={handleChange}
+                                        className="border p-2 rounded w-full h-20"
+                                    ></textarea>
+                                </div>
+
+                                {/* Form Buttons */}
+                                <div className="md:col-span-2 flex gap-2">
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex-1"
+                                    >
+                                        {loading ? 'Processing...' : (editStockId ? 'Update Stock' : 'Add Stock')}
+                                    </button>
+                                    {editStockId && (
+                                        <button
+                                            type="button"
+                                            onClick={resetForm}
+                                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
                         </div>
-                        <div className="md:col-span-3">
-                            <textarea
-                                name="remarks"
-                                value={stock.remarks}
-                                onChange={handleChange}
-                                placeholder="Remarks"
-                                className="border p-2 rounded w-full h-24"
-                            ></textarea>
+
+                        {/* Stock List */}
+                        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h2 className="text-xl font-semibold mb-4">Stock List</h2>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full">
+                                    <thead>
+                                        <tr className="bg-gray-50">
+                                            <th className="p-3 text-left">Product</th>
+                                            <th className="p-3 text-right">Quantity</th>
+                                            <th className="p-3 text-left">Category</th>
+                                            <th className="p-3 text-right">Price</th>
+                                            <th className="p-3 text-center">Status</th>
+                                            <th className="p-3 text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredStocks.map((stk) => (
+                                            <tr key={stk.id} className="border-t hover:bg-gray-50">
+                                                <td className="p-3">
+                                                    <div className="font-medium">{stk.productName}</div>
+                                                    <div className="text-sm text-gray-500">{stk.category}</div>
+                                                </td>
+                                                <td className="p-3 text-right">
+                                                    <div className="font-medium">{stk.quantity} {stk.unit}</div>
+                                                    <div className="text-sm text-gray-500">Min: {stk.minimumStock}</div>
+                                                </td>
+                                                <td className="p-3">
+                                                    <div>{stk.category}</div>
+                                                </td>
+                                                <td className="p-3 text-right">₱{(stk.price || 0).toLocaleString()}</td>
+                                                <td className="p-3 text-center">
+                                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                                        stk.quantity <= stk.minimumStock
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : stk.quantity <= stk.reorderPoint
+                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                            : 'bg-green-100 text-green-800'
+                                                    }`}>
+                                                        {stk.quantity <= stk.minimumStock
+                                                            ? 'Low Stock'
+                                                            : stk.quantity <= stk.reorderPoint
+                                                            ? 'Reorder Soon'
+                                                            : 'In Stock'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3">
+                                                    <div className="flex justify-center gap-2">
+                                                        <button
+                                                            onClick={() => handleStockAdjustment(stk.id, 1)}
+                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                            title="Add Stock"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStockAdjustment(stk.id, -1)}
+                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                            title="Remove Stock"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleEdit(stk)}
+                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                            title="Edit"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(stk.id)}
+                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                            title="Delete"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div className="md:col-span-3 flex gap-2">
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex-1"
-                            >
-                                {loading ? 'Processing...' : (editStockId ? 'Update Stock' : 'Add Stock')}
-                            </button>
-                            {editStockId && (
+
+                        {/* Stock History */}
+                        <div className="bg-white p-6 rounded-lg shadow-md">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-semibold">Stock History</h2>
                                 <button
-                                    type="button"
-                                    onClick={resetForm}
-                                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                    onClick={() => setShowHistory(!showHistory)}
+                                    className="text-blue-600 hover:text-blue-800"
                                 >
-                                    Cancel
+                                    {showHistory ? 'Hide History' : 'Show History'}
                                 </button>
+                            </div>
+                            {showHistory && (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full">
+                                        <thead>
+                                            <tr className="bg-gray-50">
+                                                <th className="p-3 text-left">Date</th>
+                                                <th className="p-3 text-left">Product</th>
+                                                <th className="p-3 text-center">Type</th>
+                                                <th className="p-3 text-right">Previous</th>
+                                                <th className="p-3 text-right">Change</th>
+                                                <th className="p-3 text-right">New</th>
+                                                <th className="p-3 text-left">Updated By</th>
+                                                <th className="p-3 text-left">Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stockHistory.map((history) => (
+                                                <tr key={history.id} className="border-t hover:bg-gray-50">
+                                                    <td className="p-3">{history.date.toLocaleDateString()}</td>
+                                                    <td className="p-3">{history.productName}</td>
+                                                    <td className="p-3 text-center">
+                                                        <span className={`px-2 py-1 rounded-full text-xs ${
+                                                            history.type === 'in' ? 'bg-green-100 text-green-800' :
+                                                            history.type === 'out' ? 'bg-red-100 text-red-800' :
+                                                            'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                            {history.type === 'in' ? 'Stock In' :
+                                                             history.type === 'out' ? 'Stock Out' :
+                                                             'Adjustment'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 text-right">{history.previousQuantity}</td>
+                                                    <td className="p-3 text-right">{history.quantity}</td>
+                                                    <td className="p-3 text-right">{history.newQuantity}</td>
+                                                    <td className="p-3">{history.updatedBy}</td>
+                                                    <td className="p-3">{history.remarks}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             )}
                         </div>
-                    </form>
-                </div>
-
-                {/* Stock List */}
-                <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Stock List</h2>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr className="bg-gray-50">
-                                    <th className="p-3 text-left">Product</th>
-                                    <th className="p-3 text-right">Quantity</th>
-                                    <th className="p-3 text-left">Supplier</th>
-                                    <th className="p-3 text-right">Price</th>
-                                    <th className="p-3 text-center">Status</th>
-                                    <th className="p-3 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredStocks.map((stk) => (
-                                    <tr key={stk.id} className="border-t hover:bg-gray-50">
-                                        <td className="p-3">
-                                            <div className="font-medium">{stk.productName}</div>
-                                            <div className="text-sm text-gray-500">{stk.category}</div>
-                                        </td>
-                                        <td className="p-3 text-right">
-                                            <div className="font-medium">{stk.quantity} {stk.unit}</div>
-                                            <div className="text-sm text-gray-500">Min: {stk.minimumStock}</div>
-                                        </td>
-                                        <td className="p-3">
-                                            <div>{stk.supplier}</div>
-                                            <div className="text-sm text-gray-500">{stk.supplierContact}</div>
-                                        </td>
-                                        <td className="p-3 text-right">₱{(stk.price || 0).toLocaleString()}</td>
-                                        <td className="p-3 text-center">
-                                            <span className={`px-2 py-1 rounded-full text-xs ${
-                                                stk.quantity <= stk.minimumStock
-                                                    ? 'bg-red-100 text-red-800'
-                                                    : stk.quantity <= stk.reorderPoint
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-green-100 text-green-800'
-                                            }`}>
-                                                {stk.quantity <= stk.minimumStock
-                                                    ? 'Low Stock'
-                                                    : stk.quantity <= stk.reorderPoint
-                                                    ? 'Reorder Soon'
-                                                    : 'In Stock'}
-                                            </span>
-                                        </td>
-                                        <td className="p-3">
-                                            <div className="flex justify-center gap-2">
-                                                <button
-                                                    onClick={() => handleStockAdjustment(stk.id, 1)}
-                                                    className="p-1 hover:bg-gray-100 rounded"
-                                                    title="Add Stock"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStockAdjustment(stk.id, -1)}
-                                                    className="p-1 hover:bg-gray-100 rounded"
-                                                    title="Remove Stock"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(stk)}
-                                                    className="p-1 hover:bg-gray-100 rounded"
-                                                    title="Edit"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(stk.id)}
-                                                    className="p-1 hover:bg-gray-100 rounded"
-                                                    title="Delete"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
                     </div>
-                </div>
-
-                {/* Stock History */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold">Stock History</h2>
-                        <button
-                            onClick={() => setShowHistory(!showHistory)}
-                            className="text-blue-600 hover:text-blue-800"
-                        >
-                            {showHistory ? 'Hide History' : 'Show History'}
-                        </button>
-                    </div>
-                    {showHistory && (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full">
-                                <thead>
-                                    <tr className="bg-gray-50">
-                                        <th className="p-3 text-left">Date</th>
-                                        <th className="p-3 text-left">Product</th>
-                                        <th className="p-3 text-center">Type</th>
-                                        <th className="p-3 text-right">Previous</th>
-                                        <th className="p-3 text-right">Change</th>
-                                        <th className="p-3 text-right">New</th>
-                                        <th className="p-3 text-left">Updated By</th>
-                                        <th className="p-3 text-left">Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {stockHistory.map((history) => (
-                                        <tr key={history.id} className="border-t hover:bg-gray-50">
-                                            <td className="p-3">{history.date.toLocaleDateString()}</td>
-                                            <td className="p-3">{history.productName}</td>
-                                            <td className="p-3 text-center">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                    history.type === 'in' ? 'bg-green-100 text-green-800' :
-                                                    history.type === 'out' ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                    {history.type === 'in' ? 'Stock In' :
-                                                     history.type === 'out' ? 'Stock Out' :
-                                                     'Adjustment'}
-                                                </span>
-                                            </td>
-                                            <td className="p-3 text-right">{history.previousQuantity}</td>
-                                            <td className="p-3 text-right">{history.quantity}</td>
-                                            <td className="p-3 text-right">{history.newQuantity}</td>
-                                            <td className="p-3">{history.updatedBy}</td>
-                                            <td className="p-3">{history.remarks}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
                 </div>
             </div>
         </ProtectedRoute>

@@ -134,29 +134,7 @@ const Sidebar = () => {
                   Stock Management
                 </div>
               </Link>
-              <Link href="/inventory/damaged-goods">
-                <div
-                  role="button"
-                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
-                >
-                  <div className="grid mr-4 place-items-center">
-                    <AlertTriangle className="w-5 h-5" />
-                  </div>
-                  Damaged Goods
-                </div>
-              </Link>
-              <Link href="/inventory/inventory-reports">
-                <div
-                  role="button"
-                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
-                >
-                  <div className="grid mr-4 place-items-center">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  Inventory Reports
-                </div>
-              </Link>
-            </div>
+            </div> 
           )}
         </div>
 
