@@ -372,6 +372,26 @@ export default function Sizes() {
                                             required
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Available Products</label>
+                                        <select
+                                            multiple
+                                            name="availableProducts"
+                                            value={size.availableProducts}
+                                            onChange={(e) => {
+                                                const options = Array.from(e.target.selectedOptions, option => option.value);
+                                                setSize({ ...size, availableProducts: options });
+                                            }}
+                                            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+                                            required
+                                        >
+                                            <option value="Sapin-sapin">Sapin-sapin</option>
+                                            <option value="Kutsinta">Kutsinta</option>
+                                            <option value="Bibingka">Bibingka</option>
+                                            <option value="Kalamay">Kalamay</option>
+                                            <option value="Cassava">Cassava</option>
+                                        </select>
+                                    </div>
                                     <div className="flex space-x-2">
                                         <button
                                             type="button"

@@ -23,7 +23,8 @@ import {
   Settings,
   LogOut,
   CircleDollarSign,
-  PackageCheck
+  PackageCheck,
+  FileBarChart
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -68,6 +69,14 @@ const Sidebar = () => {
               <LayoutDashboard className="w-5 h-5" />
             </div>
             Dashboard
+          </div>
+        </Link>
+        <Link href="/orders">
+          <div role="button" className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">
+            <div className="grid mr-4 place-items-center">
+              <ShoppingCart className="w-5 h-5" />
+            </div>
+            Orders
           </div>
         </Link>
 
@@ -134,6 +143,17 @@ const Sidebar = () => {
                   Stock Management
                 </div>
               </Link>
+              <Link href="/inventory/inventory-reports">
+                <div
+                  role="button"
+                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+                >
+                  <div className="grid mr-4 place-items-center">
+                    <FileBarChart className="w-5 h-5" />
+                  </div>
+                  Inventory Reports
+                </div>
+              </Link>
             </div> 
           )}
         </div>
@@ -184,14 +204,6 @@ const Sidebar = () => {
         </div>
 
         {/* Other Menu Items */}
-        <Link href="/orders">
-          <div role="button" className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">
-            <div className="grid mr-4 place-items-center">
-              <ShoppingCart className="w-5 h-5" />
-            </div>
-            Orders
-          </div>
-        </Link>
         <Link href="/users">
                     <div role="button"
                     className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">

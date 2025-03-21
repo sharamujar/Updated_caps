@@ -114,6 +114,8 @@ export default function Users() {
                 createdAt: doc.data().createdAt?.toDate(),
                 lastLogin: doc.data().lastLogin?.toDate(),
             })) as User[];
+
+            console.log("Fetched users:", userList);
             setUsers(userList);
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -235,6 +237,8 @@ export default function Users() {
         return matchesSearch && matchesRole && matchesStatus;
     });
 
+    console.log("Selected Tab:", selectedTab);
+
     return (
         <ProtectedRoute>
             <div className="min-h-screen bg-gray-100 p-6">
@@ -341,85 +345,91 @@ export default function Users() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center">
-                                            <div>
-                                                <div className="font-medium text-gray-900">{user.name}</div>
-                                                <div className="text-sm text-gray-500">{user.email}</div>
-                                                {user.phoneNumber && (
-                                                    <div className="text-sm text-gray-500">{user.phoneNumber}</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${
-                                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                                            user.role === 'staff' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-green-100 text-green-800'
-                                        }`}>
-                                            {user.role}
-                                        </span>
-                                        <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {user.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {selectedTab === 'customers' ? (
-                                            <div>
-                                                <div className="text-sm text-gray-900">
-                                                    Points: {user.loyaltyPoints || 0}
+                            {filteredUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="text-center p-4">No users found.</td>
+                                </tr>
+                            ) : (
+                                filteredUsers.map((user) => (
+                                    <tr key={user.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center">
+                                                <div>
+                                                    <div className="font-medium text-gray-900">{user.name}</div>
+                                                    <div className="text-sm text-gray-500">{user.email}</div>
+                                                    {user.phoneNumber && (
+                                                        <div className="text-sm text-gray-500">{user.phoneNumber}</div>
+                                                    )}
                                                 </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-full text-xs ${
+                                                user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                                user.role === 'staff' ? 'bg-blue-100 text-blue-800' :
+                                                'bg-green-100 text-green-800'
+                                            }`}>
+                                                {user.role}
+                                            </span>
+                                            <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                                                user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                            }`}>
+                                                {user.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {selectedTab === 'customers' ? (
+                                                <div>
+                                                    <div className="text-sm text-gray-900">
+                                                        Points: {user.loyaltyPoints || 0}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        Orders: {user.totalOrders || 0}
+                                                    </div>
+                                                </div>
+                                            ) : (
                                                 <div className="text-sm text-gray-500">
-                                                    Orders: {user.totalOrders || 0}
+                                                    {user.lastLogin?.toLocaleDateString() || 'Never'}
                                                 </div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-sm text-gray-500">
-                                                {user.lastLogin?.toLocaleDateString() || 'Never'}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right text-sm font-medium">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedUser(user);
-                                                setModalType('profile');
-                                                setIsModalOpen(true);
-                                            }}
-                                            className="text-blue-600 hover:text-blue-900 mr-3"
-                                        >
-                                            View Profile
-                                        </button>
-                                        {selectedTab === 'staff' && (
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-right text-sm font-medium">
                                             <button
                                                 onClick={() => {
                                                     setSelectedUser(user);
-                                                    setModalType('permissions');
+                                                    setModalType('profile');
                                                     setIsModalOpen(true);
                                                 }}
-                                                className="text-purple-600 hover:text-purple-900 mr-3"
+                                                className="text-blue-600 hover:text-blue-900 mr-3"
                                             >
-                                                Permissions
+                                                View Profile
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={() => {
-                                                setSelectedUser(user);
-                                                setModalType('edit');
-                                                setIsModalOpen(true);
-                                            }}
-                                            className="text-indigo-600 hover:text-indigo-900"
-                                        >
-                                            Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                            {selectedTab === 'staff' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedUser(user);
+                                                        setModalType('permissions');
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                    className="text-purple-600 hover:text-purple-900 mr-3"
+                                                >
+                                                    Permissions
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setModalType('edit');
+                                                    setIsModalOpen(true);
+                                                }}
+                                                className="text-indigo-600 hover:text-indigo-900"
+                                            >
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

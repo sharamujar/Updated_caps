@@ -372,6 +372,15 @@ export default function Dashboard() {
     }
   }, [recentOrders, popularProducts]);
 
+  // Add navigation handlers
+  const handleViewAllOrders = () => {
+    router.push('/orders');
+  };
+
+  const handleViewAllStock = () => {
+    router.push('/inventory/stock-management');
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -469,7 +478,12 @@ export default function Dashboard() {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold">Recent Orders</h3>
-                  <button className="text-blue-600 hover:text-blue-800 text-sm">View All</button>
+                  <button 
+                    onClick={handleViewAllOrders}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    View All
+                  </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
@@ -505,7 +519,12 @@ export default function Dashboard() {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold">Low Stock Alerts</h3>
-                  <button className="text-blue-600 hover:text-blue-800 text-sm">View All</button>
+                  <button 
+                    onClick={handleViewAllStock}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    View All
+                  </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full">

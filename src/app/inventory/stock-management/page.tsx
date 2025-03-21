@@ -45,13 +45,15 @@ interface Stock {
 interface StockHistory {
     id: string;
     productName: string;
-    type: 'in' | 'out' | 'adjustment';
+    type: 'in' | 'out' | 'adjustment' | 'deleted';
     quantity: number;
     previousQuantity: number;
     newQuantity: number;
     date: Date;
     updatedBy: string;
     remarks: string;
+    stockId: string;
+    isDeleted: boolean;
 }
 
 interface ChartData {
@@ -64,6 +66,14 @@ interface ChartData {
     tension: number;
   }[];
 }
+
+const CATEGORIES = [
+    'Bibingka',
+    'Sapin-sapin',
+    'Kutsinta',
+    'Kalamay',
+    'Cassava'
+];
 
 export default function Stock() {
     const [stocks, setStocks] = useState<Stock[]>([]);
@@ -113,6 +123,7 @@ export default function Stock() {
                 ...doc.data(),
                 lastUpdated: doc.data().lastUpdated?.toDate() || new Date()
             })) as Stock[];
+            console.log("Fetched stocks with IDs:", stockList.map(s => ({ id: s.id, name: s.productName })));
             setStocks(stockList);
             updateStockChart(stockList);
         } catch (error) {
@@ -123,14 +134,21 @@ export default function Stock() {
     const fetchStockHistory = async () => {
         try {
             const historyRef = collection(db, "stockHistory");
-            const historyQuery = query(historyRef, orderBy("date", "desc"), limit(50));
+            const historyQuery = query(
+                historyRef,
+                orderBy("date", "desc"),
+                limit(50)
+            );
             const querySnapshot = await getDocs(historyQuery);
             const historyList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 date: doc.data().date.toDate()
             })) as StockHistory[];
-            setStockHistory(historyList);
+            
+            // Filter out history entries for deleted stocks if needed
+            const filteredHistory = historyList.filter(history => !history.isDeleted);
+            setStockHistory(filteredHistory);
         } catch (error) {
             console.error("Error fetching stock history:", error);
         }
@@ -166,34 +184,27 @@ export default function Stock() {
 
         try {
             const timestamp = new Date();
+            const newStockData = {
+                ...stock,
+                lastUpdated: timestamp,
+                createdAt: timestamp,
+                id: '' // Initialize the id field
+            };
+
+            console.log("Submitting stock data:", newStockData); // Log the stock data
+
             if (editStockId) {
+                // Editing existing stock
                 const stockRef = doc(db, "stocks", editStockId);
-                const oldStock = stocks.find(s => s.id === editStockId);
-                
-                await updateDoc(stockRef, {
-                    ...stock,
-                    lastUpdated: timestamp
-                });
-
-                // Record in history
-                await addDoc(collection(db, "stockHistory"), {
-                    productName: stock.productName,
-                    type: 'adjustment',
-                    quantity: stock.quantity - (oldStock?.quantity || 0),
-                    previousQuantity: oldStock?.quantity || 0,
-                    newQuantity: stock.quantity,
-                    date: timestamp,
-                    updatedBy: "Admin", // Replace with actual user
-                    remarks: `Stock updated from ${oldStock?.quantity} to ${stock.quantity}`
-                });
-
+                await updateDoc(stockRef, newStockData);
                 alert("Stock updated successfully!");
             } else {
-                await addDoc(collection(db, "stocks"), {
-                    ...stock,
-                    lastUpdated: timestamp,
-                    createdAt: timestamp
-                });
+                // Creating new stock
+                const docRef = await addDoc(collection(db, "stocks"), newStockData);
+                console.log("New stock created with ID:", docRef.id); // Log the new ID
+
+                // Update the document to include the generated ID
+                await updateDoc(docRef, { id: docRef.id });
 
                 // Record in history
                 await addDoc(collection(db, "stockHistory"), {
@@ -204,11 +215,14 @@ export default function Stock() {
                     newQuantity: stock.quantity,
                     date: timestamp,
                     updatedBy: "Admin", // Replace with actual user
-                    remarks: "Initial stock entry"
+                    remarks: "Initial stock entry",
+                    stockId: docRef.id, // Use the generated ID
+                    isDeleted: false
                 });
 
                 alert("Stock added successfully!");
             }
+
             resetForm();
             await Promise.all([fetchStocks(), fetchStockHistory()]);
         } catch (error) {
@@ -223,7 +237,11 @@ export default function Stock() {
         try {
             const stockRef = doc(db, "stocks", id);
             const currentStock = stocks.find(s => s.id === id);
-            if (!currentStock) return;
+            
+            if (!currentStock) {
+                alert("Stock not found!");
+                return;
+            }
 
             const newQuantity = currentStock.quantity + adjustment;
             if (newQuantity < 0) {
@@ -232,12 +250,13 @@ export default function Stock() {
             }
 
             const timestamp = new Date();
+            
             await updateDoc(stockRef, {
                 quantity: newQuantity,
                 lastUpdated: timestamp
             });
 
-            // Record in history
+            // Record in history with stockId
             await addDoc(collection(db, "stockHistory"), {
                 productName: currentStock.productName,
                 type: adjustment > 0 ? 'in' : 'out',
@@ -245,11 +264,14 @@ export default function Stock() {
                 previousQuantity: currentStock.quantity,
                 newQuantity: newQuantity,
                 date: timestamp,
-                updatedBy: "Admin", // Replace with actual user
-                remarks: `Stock ${adjustment > 0 ? 'added' : 'removed'}: ${Math.abs(adjustment)} units`
+                updatedBy: "Admin",
+                remarks: `Stock ${adjustment > 0 ? 'added' : 'removed'}: ${Math.abs(adjustment)} units`,
+                stockId: id,
+                isDeleted: false
             });
 
             await Promise.all([fetchStocks(), fetchStockHistory()]);
+            
             alert(`Stock ${adjustment > 0 ? 'added' : 'removed'} successfully!`);
         } catch (error) {
             console.error("Error adjusting stock:", error);
@@ -263,15 +285,62 @@ export default function Stock() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm("Are you sure you want to delete this stock?")) {
-            try {
-                await deleteDoc(doc(db, "stocks", id));
-                alert("Stock deleted successfully!");
-                fetchStocks();
-            } catch (error) {
-                console.error("Error deleting stock:", error);
-                alert("Failed to delete stock.");
+        console.log("Attempting to delete stock with ID:", id);
+        
+        if (!id) {
+            alert("Invalid stock ID!");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete this stock?")) {
+            return;
+        }
+
+        try {
+            const stockRef = doc(db, "stocks", id);
+            const currentStock = stocks.find(s => s.id === id);
+            
+            if (!currentStock) {
+                alert("Stock not found!");
+                return;
             }
+
+            // Delete the stock
+            await deleteDoc(stockRef);
+
+            // Record final deletion in history
+            await addDoc(collection(db, "stockHistory"), {
+                productName: currentStock.productName,
+                type: 'deleted',
+                quantity: currentStock.quantity,
+                previousQuantity: currentStock.quantity,
+                newQuantity: 0,
+                date: new Date(),
+                updatedBy: "Admin",
+                remarks: "Stock deleted",
+                stockId: id,
+                isDeleted: true
+            });
+
+            // Update existing history entries for this stock
+            const historyQuery = query(
+                collection(db, "stockHistory"),
+                where("stockId", "==", id)
+            );
+            
+            const historySnapshot = await getDocs(historyQuery);
+            const updatePromises = historySnapshot.docs.map(doc => 
+                updateDoc(doc.ref, { isDeleted: true })
+            );
+            await Promise.all(updatePromises);
+
+            // Refresh the stocks list and history
+            await Promise.all([fetchStocks(), fetchStockHistory()]);
+            
+            alert("Stock deleted successfully!");
+        } catch (error) {
+            console.error("Error deleting stock:", error);
+            alert("Failed to delete stock.");
         }
     };
 
@@ -365,14 +434,38 @@ export default function Stock() {
                                 {/* Basic Information */}
                                 <div className="space-y-4">
                                     <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <select
+                                            name="category"
+                                            value={stock.category}
+                                            onChange={(e) => {
+                                                // Update both category and product name when category changes
+                                                setStock(prev => ({
+                                                    ...prev,
+                                                    category: e.target.value,
+                                                    productName: e.target.value // Set product name same as category
+                                                }));
+                                            }}
+                                            className="border p-2 rounded w-full"
+                                            required
+                                        >
+                                            <option value="">Select Category</option>
+                                            {CATEGORIES.map((category) => (
+                                                <option key={category} value={category}>
+                                                    {category}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                                         <input
                                             type="text"
                                             name="productName"
                                             value={stock.productName}
-                                            onChange={handleChange}
-                                            required
-                                            className="border p-2 rounded w-full"
+                                            readOnly // Make it read-only since it's determined by category
+                                            className="border p-2 rounded w-full bg-gray-50" // Added bg-gray-50 to indicate it's read-only
                                         />
                                     </div>
 
@@ -444,21 +537,6 @@ export default function Stock() {
                                                 className="border p-2 rounded w-full"
                                             />
                                         </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                        <select
-                                            name="category"
-                                            value={stock.category}
-                                            onChange={handleChange}
-                                            className="border p-2 rounded w-full"
-                                        >
-                                            <option value="">Select Category</option>
-                                            <option value="raw">Raw Materials</option>
-                                            <option value="finished">Finished Products</option>
-                                            <option value="packaging">Packaging</option>
-                                        </select>
                                     </div>
 
                                     <div>
