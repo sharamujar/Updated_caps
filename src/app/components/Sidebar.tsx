@@ -121,17 +121,6 @@ const Sidebar = () => {
                   Sizes & Menu
                 </div>
               </Link>
-              <Link href="/inventory/categories">
-                <div
-                  role="button"
-                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
-                >
-                  <div className="grid mr-4 place-items-center">
-                    <Tag className="w-5 h-5" />
-                  </div>
-                  Categories
-                </div>
-              </Link>
               <Link href="/inventory/stock-management">
                 <div
                   role="button"

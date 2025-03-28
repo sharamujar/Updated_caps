@@ -33,23 +33,28 @@ ChartJS.register(
 
 interface StockReport {
     id: string;
-    productName: string;
+    sizeName: string;
+    varieties: string[];
     quantity: number;
-    unit: string;
-    location: string;
     minimumStock: number;
+    reorderPoint: number;
     price: number;
+    productionDate: string;
+    expiryDate: string;
+    lastUpdated: Date;
 }
 
 interface MovementReport {
     id: string;
     date: string;
-    productName: string;
+    sizeName: string;
+    varieties: string[];
     type: 'in' | 'out' | 'adjustment';
     quantity: number;
     previousStock: number;
     currentStock: number;
     remarks: string;
+    price?: number;
 }
 
 interface OrderReport {
@@ -76,27 +81,45 @@ export default function InventoryReports() {
 
     const fetchReports = async () => {
         try {
+            // Fetch sizes and create a map of size names to prices
+            const sizesSnapshot = await getDocs(collection(db, "sizes"));
+            const sizesMap = new Map(
+                sizesSnapshot.docs.map(doc => [doc.data().name, doc.data().price])
+            );
+
             // Fetch stock levels
             const stocksSnapshot = await getDocs(collection(db, "stocks"));
-            const stocksData = stocksSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as StockReport[];
+            const stocksData = stocksSnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    price: sizesMap.get(data.sizeName) || 0, // Ensure price is fetched correctly
+                    lastUpdated: data.lastUpdated?.toDate() || new Date()
+                };
+            }) as StockReport[];
             setStockReports(stocksData);
 
             // Calculate total inventory value
             const totalValue = stocksData.reduce((sum, item) => 
-                sum + (item.quantity * item.price), 0);
+                sum + (item.quantity * (sizesMap.get(item.sizeName) || 0)), 0);
             setTotalInventoryValue(totalValue);
 
-            // Fetch movement history with timestamp conversion
-            const movementsSnapshot = await getDocs(collection(db, "stockHistory"));
+            // Fetch movement history
+            const movementsSnapshot = await getDocs(
+                query(
+                    collection(db, "stockHistory"),
+                    orderBy("date", "desc")
+                )
+            );
+            
             const movementsData = movementsSnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
                     id: doc.id,
                     ...data,
-                    // Convert Firestore timestamp to formatted date string
+                    varieties: data.varieties || [],
+                    price: sizesMap.get(data.sizeName) || 0,
                     date: data.date instanceof Timestamp 
                         ? new Date(data.date.seconds * 1000).toLocaleDateString('en-US', {
                             year: 'numeric',
@@ -108,13 +131,6 @@ export default function InventoryReports() {
                         : data.date
                 };
             }) as MovementReport[];
-
-            // Sort movements by date in descending order
-            movementsData.sort((a, b) => {
-                const dateA = new Date(a.date).getTime();
-                const dateB = new Date(b.date).getTime();
-                return dateB - dateA; // Sort in descending order
-            });
 
             setMovementReports(movementsData);
 
@@ -201,20 +217,22 @@ export default function InventoryReports() {
                                             <table className="min-w-full">
                                                 <thead>
                                                     <tr>
-                                                        <th className="text-left p-2">Product Name</th>
+                                                        <th className="text-left p-2">Size</th>
+                                                        <th className="text-left p-2">Varieties</th>
                                                         <th className="text-right p-2">Quantity</th>
-                                                        <th className="text-left p-2">Unit</th>
-                                                        <th className="text-left p-2">Location</th>
+                                                        <th className="text-right p-2">Minimum Stock</th>
+                                                        <th className="text-right p-2">Reorder Point</th>
                                                         <th className="text-right p-2">Value</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {stockReports.map(item => (
                                                         <tr key={item.id} className="border-t">
-                                                            <td className="p-2">{item.productName}</td>
+                                                            <td className="p-2">{item.sizeName}</td>
+                                                            <td className="p-2">{item.varieties.join(', ')}</td>
                                                             <td className="p-2 text-right">{item.quantity}</td>
-                                                            <td className="p-2">{item.unit}</td>
-                                                            <td className="p-2">{item.location}</td>
+                                                            <td className="p-2 text-right">{item.minimumStock}</td>
+                                                            <td className="p-2 text-right">{item.reorderPoint}</td>
                                                             <td className="p-2 text-right">
                                                                 ₱{(item.quantity * item.price).toLocaleString()}
                                                             </td>
@@ -228,20 +246,20 @@ export default function InventoryReports() {
                                         <div>
                                             <h2 className="text-xl font-semibold mb-4">Low Stock Items</h2>
                                             <table className="min-w-full">
-                                                <thead>
-                                                    <tr>
+                        <thead>
+                            <tr>
                                                         <th className="text-left p-2">Product Name</th>
                                                         <th className="text-right p-2">Current Stock</th>
                                                         <th className="text-right p-2">Minimum Stock</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
+                            </tr>
+                        </thead>
+                        <tbody>
                                                     {getLowStockItems().map(item => (
                                                         <tr key={item.id} className="border-t">
-                                                            <td className="p-2">{item.productName}</td>
+                                                            <td className="p-2">{item.sizeName}</td>
                                                             <td className="p-2 text-right">{item.quantity}</td>
                                                             <td className="p-2 text-right">{item.minimumStock}</td>
-                                                        </tr>
+                                    </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
@@ -251,7 +269,7 @@ export default function InventoryReports() {
                                         <div className="h-[300px]">
                                             <Bar
                                                 data={{
-                                                    labels: stockReports.map(item => item.productName),
+                                                    labels: stockReports.map(item => `${item.sizeName} (${item.varieties.join(', ')})`),
                                                     datasets: [{
                                                         label: 'Current Stock',
                                                         data: stockReports.map(item => item.quantity),
@@ -261,6 +279,44 @@ export default function InventoryReports() {
                                                 options={{
                                                     responsive: true,
                                                     maintainAspectRatio: false,
+                                                    plugins: {
+                                                        legend: {
+                                                            display: true,
+                                                            labels: {
+                                                                boxWidth: 20,
+                                                                font: {
+                                                                    size: 14,
+                                                                }
+                                                            }
+                                                        },
+                                                        tooltip: {
+                                                            callbacks: {
+                                                                label: (context) => {
+                                                                    const label = context.dataset.label || '';
+                                                                    const value = context.raw as number;
+                                                                    return `${label}: ${value} units`;
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        x: {
+                                                            ticks: {
+                                                                autoSkip: false,
+                                                                font: {
+                                                                    size: 12,
+                                                                }
+                                                            }
+                                                        },
+                                                        y: {
+                                                            beginAtZero: true,
+                                                            ticks: {
+                                                                font: {
+                                                                    size: 12,
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }}
                                             />
                                         </div>
@@ -274,11 +330,13 @@ export default function InventoryReports() {
                                             <thead>
                                                 <tr>
                                                     <th className="text-left p-2">Date</th>
-                                                    <th className="text-left p-2">Product</th>
+                                                    <th className="text-left p-2">Size</th>
+                                                    <th className="text-left p-2">Varieties</th>
                                                     <th className="text-left p-2">Type</th>
                                                     <th className="text-right p-2">Quantity</th>
                                                     <th className="text-right p-2">Previous Stock</th>
                                                     <th className="text-right p-2">Current Stock</th>
+                                                    <th className="text-right p-2">Value</th>
                                                     <th className="text-left p-2">Remarks</th>
                                                 </tr>
                                             </thead>
@@ -286,13 +344,25 @@ export default function InventoryReports() {
                                                 {movementReports.map(movement => (
                                                     <tr key={movement.id} className="border-t">
                                                         <td className="p-2">{movement.date}</td>
-                                                        <td className="p-2">{movement.productName}</td>
-                                                        <td className="p-2">{movement.type}</td>
+                                                        <td className="p-2">{movement.sizeName}</td>
+                                                        <td className="p-2">{(movement.varieties || []).join(', ')}</td>
+                                                        <td className="p-2">
+                                                            <span className={`px-2 py-1 rounded-full text-xs ${
+                                                                movement.type === 'in' ? 'bg-green-100 text-green-800' :
+                                                                movement.type === 'out' ? 'bg-red-100 text-red-800' :
+                                                                'bg-yellow-100 text-yellow-800'
+                                                            }`}>
+                                                                {movement.type}
+                                                            </span>
+                                                        </td>
                                                         <td className="p-2 text-right">{movement.quantity}</td>
                                                         <td className="p-2 text-right">{movement.previousStock}</td>
                                                         <td className="p-2 text-right">{movement.currentStock}</td>
+                                                        <td className="p-2 text-right">
+                                                            ₱{((movement.quantity || 0) * (movement.price || 0)).toLocaleString()}
+                                                        </td>
                                                         <td className="p-2">{movement.remarks}</td>
-                                                    </tr>
+                                </tr>
                                                 ))}
                                             </tbody>
                                         </table>
@@ -316,20 +386,38 @@ export default function InventoryReports() {
                                         <div className="h-[300px]">
                                             <Pie
                                                 data={{
-                                                    labels: stockReports.map(item => item.productName),
+                                                    labels: stockReports.map(item => `${item.sizeName} (${item.varieties.join(', ')})`),
                                                     datasets: [{
-                                                        data: stockReports.map(item => item.quantity * item.price),
+                                                        data: stockReports.map(item => item.quantity * (item.price || 0)),
                                                         backgroundColor: [
                                                             'rgba(255, 99, 132, 0.5)',
                                                             'rgba(54, 162, 235, 0.5)',
                                                             'rgba(255, 206, 86, 0.5)',
                                                             'rgba(75, 192, 192, 0.5)',
+                                                            'rgba(153, 102, 255, 0.5)',
+                                                            'rgba(255, 159, 64, 0.5)',
                                                         ],
                                                     }]
                                                 }}
                                                 options={{
                                                     responsive: true,
                                                     maintainAspectRatio: false,
+                                                    plugins: {
+                                                        legend: {
+                                                            position: 'right',
+                                                            labels: {
+                                                                boxWidth: 20
+                                                            }
+                                                        },
+                                                        tooltip: {
+                                                            callbacks: {
+                                                                label: (context) => {
+                                                                    const value = context.raw as number;
+                                                                    return `₱${value.toLocaleString()}`;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }}
                                             />
                                         </div>
@@ -353,7 +441,7 @@ export default function InventoryReports() {
                                                 {orderReports.map(order => (
                                                     <tr key={order.id} className="border-t">
                                                         <td className="p-2">{order.date}</td>
-                                                        <td className="p-2">{order.productName}</td>
+                                                        <td className="p-2">{order.sizeName}</td>
                                                         <td className="p-2 text-right">{order.quantity}</td>
                                                         <td className="p-2 text-right">₱{order.totalAmount.toLocaleString()}</td>
                                                         <td className="p-2 text-center">
@@ -367,8 +455,8 @@ export default function InventoryReports() {
                                                         </td>
                                                     </tr>
                                                 ))}
-                                            </tbody>
-                                        </table>
+                        </tbody>
+                    </table>
                                     </div>
                                 )}
                             </div>

@@ -58,7 +58,8 @@ interface RecentOrder {
 
 interface LowStockItem {
   id: string;
-  name: string;
+  name: string; // This can be the size name
+  varieties: string[]; // Array of varieties
   currentStock: number;
   minimumStock: number;
 }
@@ -269,7 +270,8 @@ export default function Dashboard() {
       const lowStock = snapshot.docs
         .map(doc => ({
           id: doc.id,
-          name: doc.data().productName,
+          name: doc.data().sizeName,
+          varieties: doc.data().varieties || [],
           currentStock: doc.data().quantity,
           minimumStock: doc.data().minimumStock || 10
         }))
@@ -279,10 +281,17 @@ export default function Dashboard() {
       
       // Add notifications for low stock items
       lowStock.forEach(item => {
-        setNotifications(prev => [...prev, {
-          message: `Low stock alert: ${item.name} (${item.currentStock} remaining)`,
-          type: 'warning'
-        }]);
+        const message = `Low stock alert: ${item.name} (${item.currentStock} remaining) - Varieties: ${item.varieties.join(', ')}`;
+        // Check if the notification already exists
+        if (!notifications.some(notification => notification.message === message)) {
+          console.log(`Adding notification: ${message}`); // Debugging log
+          setNotifications(prev => [...prev, {
+            message,
+            type: 'warning'
+          }]);
+        } else {
+          console.log(`Notification already exists: ${message}`); // Debugging log
+        }
       });
     } catch (error) {
       console.error("Error fetching low stock items:", error);
@@ -412,20 +421,20 @@ export default function Dashboard() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
                 <p className="text-gray-600 mt-1">Welcome to your business analytics</p>
-              </div>
-              
+        </div>
+
               <div className="relative">
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 hover:bg-gray-100 rounded-full">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bell">
                     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
                     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                   </svg>
-                  {notifications.length > 0 && (
+            {notifications.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {notifications.length}
-                    </span>
-                  )}
-                </button>
+                {notifications.length}
+              </span>
+            )}
+          </button>
               </div>
             </div>
 
@@ -530,7 +539,8 @@ export default function Dashboard() {
                   <table className="min-w-full">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Product</th>
+                        <th className="text-left p-2">Size</th>
+                        <th className="text-left p-2">Varieties</th>
                         <th className="text-right p-2">Current Stock</th>
                         <th className="text-right p-2">Min Stock</th>
                         <th className="text-center p-2">Status</th>
@@ -539,7 +549,8 @@ export default function Dashboard() {
                     <tbody>
                       {lowStockItems.map((item) => (
                         <tr key={item.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2">{item.name}</td>
+                          <td className="p-2 break-words max-w-xs">{item.name}</td>
+                          <td className="p-2 break-words max-w-xs">{item.varieties.join(', ') || 'No varieties'}</td>
                           <td className="text-right p-2">{item.currentStock}</td>
                           <td className="text-right p-2">{item.minimumStock}</td>
                           <td className="text-center p-2">
@@ -554,10 +565,10 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-          </div>
+        </div>
 
-          {/* Notification Dropdown */}
-          {showNotifications && (
+        {/* Notification Dropdown */}
+        {showNotifications && (
             <div className="fixed top-20 right-6 w-80 bg-white rounded-lg shadow-xl z-50">
               <div className="p-4 border-b">
                 <h3 className="font-semibold">Notifications</h3>

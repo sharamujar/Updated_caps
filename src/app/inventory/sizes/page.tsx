@@ -12,9 +12,8 @@ interface Size {
     dimensions: string;
     slices: number;
     shape: string;
-    maxVarieties: number;
     price: number;
-    availableProducts: string[];
+    maxVarieties: number;
 }
 
 interface MenuItem {
@@ -37,9 +36,8 @@ export default function Sizes() {
         dimensions: "",
         slices: 0,
         shape: "",
-        maxVarieties: 0,
         price: 0,
-        availableProducts: []
+        maxVarieties: 0,
     });
 
     const [menuItem, setMenuItem] = useState({
@@ -83,11 +81,18 @@ export default function Sizes() {
     const handleSizeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const sizeData = {
+                ...size,
+                price: Number(size.price) || 0,
+                slices: Number(size.slices) || 0,
+                maxVarieties: Number(size.maxVarieties) || 1,
+            };
+
             if (editSize) {
-                await updateDoc(doc(db, "sizes", editSize), size);
+                await updateDoc(doc(db, "sizes", editSize), sizeData);
                 alert("Size updated successfully!");
             } else {
-                await addDoc(collection(db, "sizes"), size);
+                await addDoc(collection(db, "sizes"), sizeData);
                 alert("Size added successfully!");
             }
             setSize({
@@ -95,9 +100,8 @@ export default function Sizes() {
                 dimensions: "",
                 slices: 0,
                 shape: "",
-                maxVarieties: 0,
                 price: 0,
-                availableProducts: []
+                maxVarieties: 0,
             });
             setIsOpenSize(false);
             fetchSizes();
@@ -177,9 +181,8 @@ export default function Sizes() {
                                                 dimensions: "",
                                                 slices: 0,
                                                 shape: "",
-                                                maxVarieties: 0,
                                                 price: 0,
-                                                availableProducts: []
+                                                maxVarieties: 0,
                                             });
                                             setIsOpenSize(true);
                                         }}
@@ -210,7 +213,7 @@ export default function Sizes() {
                                                     <td className="p-4">{size.slices}</td>
                                                     <td className="p-4">{size.shape}</td>
                                                     <td className="p-4">{size.maxVarieties}</td>
-                                                    <td className="p-4">₱{size.price.toFixed(2)}</td>
+                                                    <td className="p-4">₱{(size.price || 0).toFixed(2)}</td>
                                                     <td className="p-4">
                                                         <button
                                                             onClick={() => {
@@ -351,17 +354,6 @@ export default function Sizes() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Max Varieties</label>
-                                        <input
-                                            type="number"
-                                            name="maxVarieties"
-                                            value={size.maxVarieties}
-                                            onChange={handleSizeChange}
-                                            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
                                         <label className="block text-sm font-medium text-gray-700">Price</label>
                                         <input
                                             type="number"
@@ -373,24 +365,15 @@ export default function Sizes() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Available Products</label>
-                                        <select
-                                            multiple
-                                            name="availableProducts"
-                                            value={size.availableProducts}
-                                            onChange={(e) => {
-                                                const options = Array.from(e.target.selectedOptions, option => option.value);
-                                                setSize({ ...size, availableProducts: options });
-                                            }}
+                                        <label className="block text-sm font-medium text-gray-700">Max Varieties</label>
+                                        <input
+                                            type="number"
+                                            name="maxVarieties"
+                                            value={size.maxVarieties}
+                                            onChange={handleSizeChange}
                                             className="mt-1 block w-full rounded border-gray-300 shadow-sm"
                                             required
-                                        >
-                                            <option value="Sapin-sapin">Sapin-sapin</option>
-                                            <option value="Kutsinta">Kutsinta</option>
-                                            <option value="Bibingka">Bibingka</option>
-                                            <option value="Kalamay">Kalamay</option>
-                                            <option value="Cassava">Cassava</option>
-                                        </select>
+                                        />
                                     </div>
                                     <div className="flex space-x-2">
                                         <button

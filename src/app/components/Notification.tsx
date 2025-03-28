@@ -1,4 +1,4 @@
-import React from 'react';
+/* import React from 'react';
 
 interface Notification {
     message: string;
@@ -23,4 +23,4 @@ const Notification: React.FC<NotificationProps> = ({ notifications, onClose }) =
     );
 };
 
-export default Notification;
+export default Notification;*/
