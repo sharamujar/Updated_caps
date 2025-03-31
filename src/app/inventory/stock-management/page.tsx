@@ -181,8 +181,10 @@ export default function Stock() {
             const querySnapshot = await getDocs(collection(db, "sizes"));
             const sizesList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
-                ...doc.data()
-            }));
+                name: doc.data().name,
+                price: doc.data().price,
+                maxVarieties: doc.data().maxVarieties
+            })) as Size[];
             setSizes(sizesList);
         } catch (error) {
             console.error("Error fetching sizes:", error);
@@ -194,7 +196,7 @@ export default function Stock() {
             const querySnapshot = await getDocs(collection(db, "varieties"));
             const varietiesList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
-                ...doc.data()
+                name: doc.data().name
             }));
             console.log("Fetched varieties:", varietiesList);
             setVarieties(varietiesList);

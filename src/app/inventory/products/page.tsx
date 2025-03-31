@@ -28,9 +28,6 @@ export default function Inventory() {
     const [product, setProduct] = useState({
         imageURL: "",
         name: "",
-        price: "",
-        stock: "",
-        unit: "",
         description: "",
     });
 
@@ -109,30 +106,25 @@ export default function Inventory() {
                     return;
                 }
                 imageURL = uploadedImageURL;
-                
             }
 
             // save product details in firestore
             await addDoc(collection(db, "products"), {
-            imageURL,
-            name: product.name,
-            price: Number(product.price),
-            stock: Number(product.stock),
-            unit: (product.unit),
-            description: (product.description),
-            createdAt: new Date(),
+                imageURL,
+                name: product.name,
+                description: product.description,
+                createdAt: new Date(),
             });
 
-        alert("Product added successfully!");
+            alert("Product added successfully!");
 
-        // clear form state
-        setProducts([]);
-        setImage(null); 
-        setFile(null);
+            // clear form state
+            setProducts([]);
+            setImage(null); 
+            setFile(null);
 
-        // Fetch products again to update UI
-        fetchProducts();
-
+            // Fetch products again to update UI
+            fetchProducts();
         } catch (error) {
             console.error("Error adding product: ", error);
             alert("Failed to add product. Please try again later.");
@@ -146,9 +138,6 @@ export default function Inventory() {
             await updateDoc(doc(db, "products", productID), {
                 imageURL: product.imageURL,
                 name: product.name,
-                price: Number(product.price),
-                stock: Number(product.stock),
-                unit: product.unit,
                 description: product.description,
             });
 
@@ -209,9 +198,6 @@ export default function Inventory() {
                                 setProduct({
                                     imageURL: "",
                                     name: "",
-                                    price: "",
-                                    stock: "",
-                                    unit: "",
                                     description: "",
                                 });
                                 setIsOpen(true); // open modal
@@ -232,18 +218,8 @@ export default function Inventory() {
                     } else {
                         handleSubmit(e); // Call handleSubmit if adding a new product
                     }
-                }}
-                    className="flex flex-col gap-4">
+                }} className="flex flex-col gap-4">
                     <div className="w-full max-w-sm min-w-[200px]">
-                        {/* Close button */}
-                        {/* <div className="flex justify-end pb-4">
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg"
-                                >
-                                Close
-                            </button>
-                        </div> */}
                         <input className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow"
                             type="file"
                             accept="image/*"
@@ -260,33 +236,6 @@ export default function Inventory() {
                             required/>
                     </div>
                     <div className="w-full max-w-sm min-w-[200px]">
-                        <input className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-purple-500 hover:border-purple-300 shadow-sm focus:shadow" 
-                            type="number"
-                            name="price"
-                            value={product.price}
-                            onChange={handleChange}
-                            placeholder="Price" 
-                            required/>
-                    </div>
-                    <div className="w-full max-w-sm min-w-[200px]">
-                        <input className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-indigo-500 hover:border-indigo-300 shadow-sm focus:shadow" 
-                            type="number"
-                            name="stock"
-                            value={product.stock}
-                            onChange={handleChange}
-                            placeholder="Quantity / Stock" 
-                            required/>
-                    </div>
-                    <div className="w-full max-w-sm min-w-[200px]">
-                        <input className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow" 
-                            type="text"
-                            name="unit"
-                            value={product.unit}
-                            onChange={handleChange}
-                            placeholder="Unit Type" 
-                            required/>
-                    </div>
-                    <div className="w-full max-w-sm min-w-[200px]">
                         <textarea
                             className="w-full h-40 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow"
                             name="description"
@@ -295,24 +244,18 @@ export default function Inventory() {
                             placeholder="Description" 
                             required/>
                     </div>
-                    {/* <button className="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none " 
-                        type="submit">{editProduct ? "Update Product" : "Add Product"} 
-                    </button> */}
-                    
-                    <div className="p-6 pt-0">
-                        <div className="flex space-x-2">
-                            <button
-                                className="w-full mx-auto select-none rounded border border-red-600 py-2 px-4 text-center text-sm font-semibold text-red-600 transition-all hover:bg-red-600 hover:text-white hover:shadow-md hover:shadow-red-600/20 active:bg-red-700 active:text-white active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                                type="button"
-                                onClick={() => setIsOpen(false)}>
-                                Cancel
-                            </button>
+                    <div className="flex space-x-2">
+                        <button
+                            className="w-full mx-auto select-none rounded border border-red-600 py-2 px-4 text-center text-sm font-semibold text-red-600 transition-all hover:bg-red-600 hover:text-white hover:shadow-md hover:shadow-red-600/20 active:bg-red-700 active:text-white active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                            type="button"
+                            onClick={() => setIsOpen(false)}>
+                            Cancel
+                        </button>
                 
-                            <button
-                                className="w-full mx-auto select-none rounded bg-bg-light-brown py-2 px-4 text-center text-sm font-semibold text-white shadow-md shadow-slate-900/10 transition-all hover:shadow-lg hover:shadow-slate-900/20 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                                type="submit">{editProduct ? "Update" : "Add"} 
-                            </button>
-                        </div>
+                        <button
+                            className="w-full mx-auto select-none rounded bg-bg-light-brown py-2 px-4 text-center text-sm font-semibold text-white shadow-md shadow-slate-900/10 transition-all hover:shadow-lg hover:shadow-slate-900/20 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                            type="submit">{editProduct ? "Update" : "Add"} 
+                        </button>
                     </div>
                 </form>
                         </div>
@@ -326,39 +269,16 @@ export default function Inventory() {
                         <thead>
                             <tr>
                                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Image
-                                    </p>
+                                    <p className="block text-sm font-normal leading-none text-slate-500">Image</p>
                                 </th>
                                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Name
-                                    </p>
+                                    <p className="block text-sm font-normal leading-none text-slate-500">Name</p>
                                 </th>
                                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Price
-                                    </p>
+                                    <p className="block text-sm font-normal leading-none text-slate-500">Description</p>
                                 </th>
                                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Quantity
-                                    </p>
-                                </th>
-                                <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Unit
-                                    </p>
-                                </th>
-                                <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Description
-                                    </p>
-                                </th>
-                                <th className="p-4 border-b border-slate-300 bg-slate-50">
-                                    <p className="block text-sm font-normal leading-none text-slate-500">
-                                    Actions
-                                    </p>
+                                    <p className="block text-sm font-normal leading-none text-slate-500">Actions</p>
                                 </th>
                             </tr>
                         </thead>
@@ -370,23 +290,16 @@ export default function Inventory() {
                                             <img src={product.imageURL} alt={product.name} className="w-16 h-16 object-cover rounded" />
                                         </td>
                                         <td className="p-4 py-5 text-sm text-slate-800">{product.name}</td>
-                                        <td className="p-4 py-5 text-sm text-slate-800">₱{product.price}</td>
-                                        <td className="p-4 py-5 text-sm text-slate-800">{product.stock}</td>
-                                        <td className="p-4 py-5 text-sm text-slate-800">{product.unit}</td>
                                         <td className="p-4 py-5 text-sm text-slate-800 break-words whitespace-pre-wrap max-w-xs">{product.description}</td>
                                         <td className="p-4 py-5">
                                             <div>
                                                 <button className="text-slate-600 hover:text-slate-800 flex"
                                                     onClick={() => {
-                                                        console.log("Image URL:", product.imageURL); // Debugging
                                                         setIsOpen(true);
                                                         setEditProduct(product.id); // Set the product ID for editing
                                                         setProduct({
                                                             imageURL: product.imageURL,
                                                             name: product.name,
-                                                            price: product.price,
-                                                            stock: product.stock,
-                                                            unit: product.unit,
                                                             description: product.description,
                                                         });
                                                     }}>
@@ -398,7 +311,7 @@ export default function Inventory() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="text-center p-4">No products available.</td>
+                                    <td colSpan={4} className="text-center p-4">No products available.</td>
                                 </tr>
                             )}
                         </tbody>

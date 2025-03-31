@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { db } from "../../firebase-config";
+import { db, storage } from "../../firebase-config";
 import ProtectedRoute from "@/app/components/protectedroute";
 import { useEffect, useState } from "react";
 import { addDoc, collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface Size {
     id: string;
@@ -14,22 +15,15 @@ interface Size {
     shape: string;
     price: number;
     maxVarieties: number;
-}
-
-interface MenuItem {
-    id: string;
-    name: string;
-    isAvailable: boolean;
+    imageUrl: string;
+    varieties: string[];
 }
 
 export default function Sizes() {
     const [isOpenSize, setIsOpenSize] = useState(false);
-    const [isOpenMenu, setIsOpenMenu] = useState(false);
     const [editSize, setEditSize] = useState<string | null>(null);
-    const [editMenuItem, setEditMenuItem] = useState<string | null>(null);
 
     const [sizes, setSizes] = useState<Size[]>([]);
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
     const [size, setSize] = useState<Omit<Size, 'id'>>({
         name: "",
@@ -38,54 +32,47 @@ export default function Sizes() {
         shape: "",
         price: 0,
         maxVarieties: 0,
+        imageUrl: "",
+        varieties: [],
     });
 
-    const [menuItem, setMenuItem] = useState({
-        name: "",
-        isAvailable: true
-    });
+    const [image, setImage] = useState<File | null>(null);
 
     const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
         setSize({ ...size, [e.target.name]: value });
     };
 
-    const handleMenuItemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-        setMenuItem({ ...menuItem, [e.target.name]: value });
-    };
-
     useEffect(() => {
         fetchSizes();
-        fetchMenuItems();
     }, []);
 
     const fetchSizes = async () => {
         const querySnapshot = await getDocs(collection(db, "sizes"));
         const sizeList = querySnapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data()
+            ...doc.data(),
+            varieties: doc.data().varieties || []
         }));
         setSizes(sizeList as Size[]);
-    };
-
-    const fetchMenuItems = async () => {
-        const querySnapshot = await getDocs(collection(db, "menuItems"));
-        const menuList = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        setMenuItems(menuList as MenuItem[]);
     };
 
     const handleSizeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            let imageUrl = "";
+            if (image) {
+                const imageRef = ref(storage, `sizes/${image.name}`);
+                await uploadBytes(imageRef, image);
+                imageUrl = await getDownloadURL(imageRef);
+            }
+
             const sizeData = {
                 ...size,
                 price: Number(size.price) || 0,
                 slices: Number(size.slices) || 0,
                 maxVarieties: Number(size.maxVarieties) || 1,
+                imageUrl,
             };
 
             if (editSize) {
@@ -102,30 +89,14 @@ export default function Sizes() {
                 shape: "",
                 price: 0,
                 maxVarieties: 0,
+                imageUrl: "",
+                varieties: [],
             });
+            setImage(null);
             setIsOpenSize(false);
             fetchSizes();
         } catch (error) {
             console.error("Error managing size: ", error);
-            alert("Operation failed. Please try again later.");
-        }
-    };
-
-    const handleMenuItemSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            if (editMenuItem) {
-                await updateDoc(doc(db, "menuItems", editMenuItem), menuItem);
-                alert("Menu item updated successfully!");
-            } else {
-                await addDoc(collection(db, "menuItems"), menuItem);
-                alert("Menu item added successfully!");
-            }
-            setMenuItem({ name: "", isAvailable: true });
-            setIsOpenMenu(false);
-            fetchMenuItems();
-        } catch (error) {
-            console.error("Error managing menu item: ", error);
             alert("Operation failed. Please try again later.");
         }
     };
@@ -146,26 +117,9 @@ export default function Sizes() {
         }
     };
 
-    const handleDeleteMenuItem = async (menuItemId: string) => {
-        if (!menuItemId) return;
-
-        const confirmation = window.confirm("Are you sure you want to delete this menu item?");
-        if (confirmation) {
-            try {
-                await deleteDoc(doc(db, "menuItems", menuItemId));
-                alert("Menu item deleted successfully!");
-                fetchMenuItems();
-            } catch (error) {
-                console.error("Error deleting menu item: ", error);
-                alert("Failed to delete menu item. Please try again later.");
-            }
-        }
-    };
-
     return (
         <ProtectedRoute>
             <div className="flex h-screen overflow-hidden">
-                {/* Sidebar will be rendered by the layout */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-6">
                         {/* Product Sizes Section */}
@@ -183,6 +137,8 @@ export default function Sizes() {
                                                 shape: "",
                                                 price: 0,
                                                 maxVarieties: 0,
+                                                imageUrl: "",
+                                                varieties: [],
                                             });
                                             setIsOpenSize(true);
                                         }}
@@ -196,11 +152,13 @@ export default function Sizes() {
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="border-b">
+                                                <th className="p-4 bg-gray-50">Image</th>
                                                 <th className="p-4 bg-gray-50">Name</th>
                                                 <th className="p-4 bg-gray-50">Dimensions</th>
                                                 <th className="p-4 bg-gray-50">Slices</th>
                                                 <th className="p-4 bg-gray-50">Shape</th>
                                                 <th className="p-4 bg-gray-50">Max Varieties</th>
+                                                <th className="p-4 bg-gray-50">Varieties</th>
                                                 <th className="p-4 bg-gray-50">Price</th>
                                                 <th className="p-4 bg-gray-50">Actions</th>
                                             </tr>
@@ -208,11 +166,21 @@ export default function Sizes() {
                                         <tbody>
                                             {sizes.map((size) => (
                                                 <tr key={size.id} className="border-b hover:bg-gray-50">
+                                                    <td className="p-4">
+                                                        {size.imageUrl && (
+                                                            <img
+                                                                src={size.imageUrl}
+                                                                alt={size.name}
+                                                                className="w-16 h-16 object-cover rounded"
+                                                            />
+                                                        )}
+                                                    </td>
                                                     <td className="p-4">{size.name}</td>
                                                     <td className="p-4">{size.dimensions}</td>
                                                     <td className="p-4">{size.slices}</td>
                                                     <td className="p-4">{size.shape}</td>
                                                     <td className="p-4">{size.maxVarieties}</td>
+                                                    <td className="p-4">{size.varieties.join(", ")}</td>
                                                     <td className="p-4">₱{(size.price || 0).toFixed(2)}</td>
                                                     <td className="p-4">
                                                         <button
@@ -227,65 +195,6 @@ export default function Sizes() {
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteSize(size.id)}
-                                                            className="text-red-600 hover:text-red-800"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            {/* Menu Items Section */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl font-bold text-gray-800">Menu Items</h2>
-                                    <button
-                                        onClick={() => {
-                                            setEditMenuItem(null);
-                                            setMenuItem({ name: "", isAvailable: true });
-                                            setIsOpenMenu(true);
-                                        }}
-                                        className="px-4 py-2 bg-bg-light-brown text-white rounded hover:bg-opacity-90"
-                                    >
-                                        Add Menu Item
-                                    </button>
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left">
-                                        <thead>
-                                            <tr className="border-b">
-                                                <th className="p-4 bg-gray-50">Name</th>
-                                                <th className="p-4 bg-gray-50">Availability</th>
-                                                <th className="p-4 bg-gray-50">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {menuItems.map((item) => (
-                                                <tr key={item.id} className="border-b hover:bg-gray-50">
-                                                    <td className="p-4">{item.name}</td>
-                                                    <td className="p-4">
-                                                        <span className={`px-2 py-1 rounded ${item.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                            {item.isAvailable ? 'Available' : 'Not Available'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="p-4">
-                                                        <button
-                                                            onClick={() => {
-                                                                setEditMenuItem(item.id);
-                                                                setMenuItem(item);
-                                                                setIsOpenMenu(true);
-                                                            }}
-                                                            className="text-blue-600 hover:text-blue-800 mr-4"
-                                                        >
-                                                            Edit
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteMenuItem(item.id)}
                                                             className="text-red-600 hover:text-red-800"
                                                         >
                                                             Delete
@@ -375,6 +284,33 @@ export default function Sizes() {
                                             required
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Upload Image</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                if (e.target.files) {
+                                                    setImage(e.target.files[0]);
+                                                }
+                                            }}
+                                            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Varieties (comma-separated)</label>
+                                        <input
+                                            type="text"
+                                            name="varieties"
+                                            value={size.varieties.join(", ")}
+                                            onChange={(e) => {
+                                                const varietiesArray = e.target.value.split(",").map(v => v.trim());
+                                                setSize({ ...size, varieties: varietiesArray });
+                                            }}
+                                            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+                                            placeholder="Enter varieties"
+                                        />
+                                    </div>
                                     <div className="flex space-x-2">
                                         <button
                                             type="button"
@@ -388,52 +324,6 @@ export default function Sizes() {
                                             className="flex-1 px-4 py-2 bg-bg-light-brown text-white rounded hover:bg-opacity-90"
                                         >
                                             {editSize ? 'Update' : 'Add'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {isOpenMenu && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg p-6 w-96">
-                                <h3 className="text-xl font-bold mb-4">{editMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</h3>
-                                <form onSubmit={handleMenuItemSubmit} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Name</label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={menuItem.name}
-                                            onChange={handleMenuItemChange}
-                                            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            name="isAvailable"
-                                            checked={menuItem.isAvailable}
-                                            onChange={handleMenuItemChange}
-                                            className="h-4 w-4 text-blue-600 rounded border-gray-300"
-                                        />
-                                        <label className="ml-2 block text-sm text-gray-700">Available</label>
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsOpenMenu(false)}
-                                            className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="flex-1 px-4 py-2 bg-bg-light-brown text-white rounded hover:bg-opacity-90"
-                                        >
-                                            {editMenuItem ? 'Update' : 'Add'}
                                         </button>
                                     </div>
                                 </form>

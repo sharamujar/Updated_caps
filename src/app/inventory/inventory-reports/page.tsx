@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import ProtectedRoute from "@/app/components/protectedroute";
 import { db } from "../../firebase-config";
 import { collection, getDocs, query, where, orderBy, Timestamp } from "firebase/firestore";
@@ -58,6 +58,7 @@ interface MovementReport {
 }
 
 interface OrderReport {
+    sizeName: ReactNode;
     id: string;
     date: string;
     productName: string;

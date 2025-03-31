@@ -118,7 +118,7 @@ const Sidebar = () => {
                   <div className="grid mr-4 place-items-center">
                     <Ruler className="w-5 h-5" />
                   </div>
-                  Sizes & Menu
+                  Sizes
                 </div>
               </Link>
               <Link href="/inventory/stock-management">
