@@ -57,14 +57,33 @@ export default function Sizes() {
         setSizes(sizeList as Size[]);
     };
 
+    const uploadImage = async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "bbnka-product-images"); // asset folder name
+        formData.append("cloud_name", "dbmofuvwn"); // Cloudinary cloud name
+
+        try {
+            const res = await fetch("https://api.cloudinary.com/v1_1/dbmofuvwn/image/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+            return data.secure_url; // get the uploaded image URL
+
+        } catch (error) {
+            console.error("Error uploading image: ", error);
+            return null;
+        }
+    };
+
     const handleSizeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             let imageUrl = "";
             if (image) {
-                const imageRef = ref(storage, `sizes/${image.name}`);
-                await uploadBytes(imageRef, image);
-                imageUrl = await getDownloadURL(imageRef);
+                imageUrl = await uploadImage(image);
             }
 
             const sizeData = {

@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import ProtectedRoute from "@/app/components/protectedroute";
 import { db } from "../../firebase-config";
-import { collection, getDocs, query, where, orderBy, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy, Timestamp, addDoc } from "firebase/firestore";
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -363,7 +363,7 @@ export default function InventoryReports() {
                                                             ₱{((movement.quantity || 0) * (movement.price || 0)).toLocaleString()}
                                                         </td>
                                                         <td className="p-2">{movement.remarks}</td>
-                                </tr>
+                                                    </tr>
                                                 ))}
                                             </tbody>
                                         </table>

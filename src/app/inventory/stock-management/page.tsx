@@ -327,8 +327,8 @@ export default function Stock() {
                     sizeName: selectedSize.name,
                     type: 'in',
                     quantity: stock.quantity,
-                    previousQuantity: 0,
-                    newQuantity: stock.quantity,
+                    previousStock: 0,
+                    currentStock: stock.quantity,
                     date: new Date(),
                     updatedBy: "Admin",
                     remarks: "Initial stock entry",
@@ -367,19 +367,20 @@ export default function Stock() {
 
             const timestamp = new Date();
             
+            // Update the stock quantity
             await updateDoc(stockRef, {
                 quantity: newQuantity,
                 lastUpdated: timestamp
             });
 
-            // Record in history with stockId
+            // Record in history with stockId and varieties
             await addDoc(collection(db, "stockHistory"), {
-                variety: currentStock.varieties.join(', '),
+                varieties: currentStock.varieties, // Include varieties in the history
                 sizeName: currentStock.sizeName,
                 type: adjustment > 0 ? 'in' : 'out',
                 quantity: Math.abs(adjustment),
-                previousQuantity: currentStock.quantity,
-                newQuantity: newQuantity,
+                previousStock: currentStock.quantity, // Set previous stock
+                currentStock: newQuantity, // Set current stock
                 date: timestamp,
                 updatedBy: "Admin",
                 remarks: `Stock ${adjustment > 0 ? 'added' : 'removed'}: ${Math.abs(adjustment)} units`,
@@ -955,7 +956,7 @@ export default function Stock() {
                                                 <tr key={history.id} className="border-t hover:bg-gray-50">
                                                     <td className="p-3">{history.date.toLocaleDateString()}</td>
                                                     <td className="p-3">{history.sizeName}</td>
-                                                    <td className="p-3">{history.varieties?.join(', ')}</td>
+                                                    <td className="p-3">{(history.varieties || []).join(', ')}</td>
                                                     <td className="p-3 text-center">
                                                         <span className={`px-2 py-1 rounded-full text-xs ${
                                                             history.type === 'in' ? 'bg-green-100 text-green-800' :
@@ -967,9 +968,9 @@ export default function Stock() {
                                                              'Adjustment'}
                                                         </span>
                                                     </td>
-                                                    <td className="p-3 text-right">{history.previousQuantity}</td>
+                                                    <td className="p-3 text-right">{history.previousStock}</td>
                                                     <td className="p-3 text-right">{history.quantity}</td>
-                                                    <td className="p-3 text-right">{history.newQuantity}</td>
+                                                    <td className="p-3 text-right">{history.currentStock}</td>
                                                     <td className="p-3">{history.updatedBy}</td>
                                                     <td className="p-3">{history.remarks}</td>
                                                 </tr>
