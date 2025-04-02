@@ -232,26 +232,26 @@ export default function Stock() {
     const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedSize = sizes.find(s => s.id === e.target.value);
         
-        // Find Bibingka in varieties array
-        const bibingkaVariety = varieties.find(v => v.name === 'Bibingka');
-        
+        // Reset selected varieties when size changes
+        let autoSelectedVarieties: string[] = [];
+
+        if (selectedSize) {
+            if (selectedSize.name === 'Solo' || selectedSize.name === 'Small') {
+                // For Solo and Small, automatically select Bibingka
+                autoSelectedVarieties = ['Bibingka'];
+            }
+            // For Big Bilao, we don't auto-select any varieties
+            // but we'll handle the max limit in handleVarietyChange
+        }
+
         setStock(prev => ({
             ...prev,
             sizeId: e.target.value,
             sizeName: selectedSize?.name || '',
-            varieties: selectedSize?.name === 'Solo' || selectedSize?.name === 'Small' 
-                ? ['Bibingka'] 
-                : []
+            varieties: autoSelectedVarieties
         }));
-        
-        // Automatically select "Bibingka" if the selected size is "Solo" or "Small"
-        if (selectedSize && (selectedSize.name === 'Solo' || selectedSize.name === 'Small')) {
-            if (bibingkaVariety) {
-                setSelectedVarieties(['Bibingka']);
-            }
-        } else {
-            setSelectedVarieties([]);
-        }
+
+        setSelectedVarieties(autoSelectedVarieties);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -506,10 +506,21 @@ export default function Stock() {
         },
     };
 
-    // Function to handle variety selection
+    // Update the handleVarietyChange function to handle variety selection limits
     const handleVarietyChange = (variety: string) => {
         const selectedSize = sizes.find(s => s.id === stock.sizeId);
         const maxVarieties = selectedSize?.maxVarieties || 0;
+
+        // For Solo and Small sizes, only allow Bibingka
+        if ((selectedSize?.name === 'Solo' || selectedSize?.name === 'Small') && variety !== 'Bibingka') {
+            return;
+        }
+
+        // For Big Bilao, don't allow Cassava
+        if (selectedSize?.name === 'Big Bilao' && variety === 'Cassava') {
+            alert('Cassava is not available for Big Bilao size');
+            return;
+        }
 
         // If variety is already selected, remove it
         if (selectedVarieties.includes(variety)) {
@@ -788,8 +799,8 @@ export default function Stock() {
 
                                 {/* Form Buttons */}
                                 <div className="md:col-span-2 flex gap-2">
-                                    <button
-                                        type="submit"
+                    <button
+                        type="submit"
                                         disabled={loading || selectedVarieties.length === 0}
                                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex-1 disabled:opacity-50"
                                     >
@@ -802,10 +813,10 @@ export default function Stock() {
                                             className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                                         >
                                             Cancel
-                                    </button>
+                    </button>
                                     )}
                                 </div>
-                            </form>
+                </form>
                         </div>
 
                         {/* Stock List */}
@@ -896,7 +907,7 @@ export default function Stock() {
                                                                     <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                                                                 </svg>
                                                             </button>
-                                                            <button
+                                    <button
                                                                 onClick={() => handleEdit(stk)}
                                                                 className="p-1 hover:bg-gray-100 rounded"
                                                                 title="Edit"
@@ -904,8 +915,8 @@ export default function Stock() {
                                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                                                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                                                 </svg>
-                                                            </button>
-                                                            <button
+                                    </button>
+                                    <button
                                                                 onClick={() => handleDelete(stk.id)}
                                                                 className="p-1 hover:bg-gray-100 rounded"
                                                                 title="Delete"
@@ -1038,9 +1049,9 @@ export default function Stock() {
                                                 onClick={() => handleDeleteSize(size.id)}
                                                 className="text-red-600 hover:text-red-800"
                                             >
-                                                Delete
-                                            </button>
-                                        </div>
+                                        Delete
+                                    </button>
+                                </div>
                                     ))}
                                 </div>
                             </div>
@@ -1071,9 +1082,9 @@ export default function Stock() {
                                             >
                                                 Delete
                                             </button>
-                                        </div>
-                                    ))}
-                                </div>
+                            </div>
+                        ))}
+                    </div>
                             </div>
 
                             {/* Existing form buttons */}
@@ -1093,8 +1104,8 @@ export default function Stock() {
                                 </button>
                             </div>
                         </form>
-                    </div>
                 </div>
+            </div>
             )}
         </ProtectedRoute>
     );
