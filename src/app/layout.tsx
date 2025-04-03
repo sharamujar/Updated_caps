@@ -3,8 +3,9 @@ import { usePathname } from "next/navigation";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar";
-import Head from 'next/head';
-import { ReactNode } from 'react';
+import Head from "next/head";
+import { ReactNode } from "react";
+import { AuthProvider } from "./context/AuthContext";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -21,14 +22,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <Head>
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet"
+        />
       </Head>
-      <body
-        className={`${poppins.variable} antialiased`}>
+      <body className={`${poppins.variable} antialiased`}>
+        <AuthProvider>
           <div className="flex">
             <Sidebar />
             <main className="flex-1">{children}</main>
-        </div>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

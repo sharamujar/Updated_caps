@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { auth } from "../firebase-config";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { 
+import {
   LayoutDashboard,
   Package,
   Box,
@@ -24,12 +24,13 @@ import {
   LogOut,
   CircleDollarSign,
   PackageCheck,
-  FileBarChart
-} from 'lucide-react';
+  FileBarChart,
+} from "lucide-react";
 
 const Sidebar = () => {
   const [isInventoryOpen, setIsInventoryOpen] = useState(false); // Track inventory dropdown state
   const [isContentManagementOpen, setIsContentManagementOpen] = useState(false); // Track content management dropdown state
+  const [isOrdersOpen, setIsOrdersOpen] = useState(false); // Add this line
   const router = useRouter(); // Next.js navigation
 
   const handleLogout = async () => {
@@ -71,14 +72,55 @@ const Sidebar = () => {
             Dashboard
           </div>
         </Link>
-        <Link href="/orders">
-          <div role="button" className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">
+
+        {/* Orders Module with Arrow Dropdown */}
+        <div className="relative">
+          <div
+            role="button"
+            onClick={() => setIsOrdersOpen(!isOrdersOpen)}
+            className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+          >
             <div className="grid mr-4 place-items-center">
               <ShoppingCart className="w-5 h-5" />
             </div>
             Orders
+            <div
+              className={`ml-auto transform transition-transform duration-300 ${
+                isOrdersOpen ? "rotate-180" : ""
+              }`}
+            >
+              <ChevronDown className="w-5 h-5" />
+            </div>
           </div>
-        </Link>
+
+          {/* Orders Dropdown items */}
+          {isOrdersOpen && (
+            <div className="ml-6 mt-2 space-y-1">
+              <Link href="/orders">
+                <div
+                  role="button"
+                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+                >
+                  <div className="grid mr-4 place-items-center">
+                    <ShoppingCart className="w-5 h-5" />
+                  </div>
+                  All Orders
+                </div>
+              </Link>
+              <Link href="/orders/pending-verification">
+                <div
+                  role="button"
+                  className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+                >
+                  <div className="grid mr-4 place-items-center">
+                    <PackageCheck className="w-5 h-5" />
+                  </div>
+                  Pending Verification
+                </div>
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Inventory Module with Arrow Dropdown */}
         <div className="relative">
@@ -91,7 +133,11 @@ const Sidebar = () => {
               <Package className="w-5 h-5" />
             </div>
             Inventory
-            <div className={`ml-auto transform transition-transform duration-300 ${isInventoryOpen ? 'rotate-180' : ''}`}>
+            <div
+              className={`ml-auto transform transition-transform duration-300 ${
+                isInventoryOpen ? "rotate-180" : ""
+              }`}
+            >
               <ChevronDown className="w-5 h-5" />
             </div>
           </div>
@@ -143,7 +189,7 @@ const Sidebar = () => {
                   Inventory Reports
                 </div>
               </Link>
-            </div> 
+            </div>
           )}
         </div>
 
@@ -158,7 +204,11 @@ const Sidebar = () => {
               <FileText className="w-5 h-5" />
             </div>
             Content Management
-            <div className={`ml-auto transform transition-transform duration-300 ${isContentManagementOpen ? 'rotate-180' : ''}`}>
+            <div
+              className={`ml-auto transform transition-transform duration-300 ${
+                isContentManagementOpen ? "rotate-180" : ""
+              }`}
+            >
               <ChevronDown className="w-5 h-5" />
             </div>
           </div>
@@ -194,24 +244,27 @@ const Sidebar = () => {
 
         {/* Other Menu Items */}
         <Link href="/users">
-                    <div role="button"
-                    className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">
-                    <div className="grid mr-4 place-items-center">
-                        <Users className="w-5 h-5" />
-                    </div>
-                    Users
-                    </div>
-                </Link>
-                <Link href="/settings">
-                    <div role="button"
-                    className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">
-                    <div className="grid mr-4 place-items-center">
-                        <Settings className="w-5 h-5" />
-                    </div>
-                    Settings
-                </div>
-                </Link>
-
+          <div
+            role="button"
+            className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+          >
+            <div className="grid mr-4 place-items-center">
+              <Users className="w-5 h-5" />
+            </div>
+            Users
+          </div>
+        </Link>
+        <Link href="/settings">
+          <div
+            role="button"
+            className="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-bg-light-brown hover:bg-opacity-80 hover:text-white focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
+          >
+            <div className="grid mr-4 place-items-center">
+              <Settings className="w-5 h-5" />
+            </div>
+            Settings
+          </div>
+        </Link>
 
         {/* Logout Button */}
         <div className="mt-auto">
